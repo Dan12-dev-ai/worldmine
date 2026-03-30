@@ -34,6 +34,7 @@ const GlobalNavbar: React.FC = () => {
   const tabs = [
     { id: 'marketplace', label: t('navbar.marketplace'), icon: '🏪' },
     { id: 'contracts', label: t('navbar.contracts'), icon: '📄' },
+    { id: 'News', label: 'News', icon: '📰' },
     { id: 'profile', label: t('navbar.profile'), icon: '👤' },
     { id: 'settings', label: t('navbar.settings'), icon: '⚙️' }
   ];

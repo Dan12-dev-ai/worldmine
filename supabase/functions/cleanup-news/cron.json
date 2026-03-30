@@ -1,0 +1,4 @@
+{
+  "schedule": "0 0 * * 0",
+  "description": "Clean up market news older than 7 days - runs every Sunday at midnight"
+}

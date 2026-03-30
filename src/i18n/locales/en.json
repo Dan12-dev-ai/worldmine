@@ -57,6 +57,20 @@
     "diamonds": "Diamonds",
     "rare_earth": "Rare Earth Metals"
   },
+  "news": {
+    "all": "All News",
+    "economic": "Economic",
+    "supply": "Supply Chain",
+    "mini": "Daily Mini",
+    "breaking": "Breaking",
+    "noNews": "No market news available",
+    "priceUp": "Price Up",
+    "priceDown": "Price Down",
+    "priceStable": "Price Stable",
+    "highPriority": "High Priority",
+    "marketAnalysis": "Market Analysis",
+    "source": "Source"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

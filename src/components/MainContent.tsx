@@ -1,6 +1,7 @@
 import React from 'react'
 import { listings } from '../data/commodities'
 import ListingCard from './ListingCard'
+import NewsHub from './NewsHub'
 import { Button } from './ui/button'
 import { useMarketplaceStore } from '../store/marketplaceStore'
 import { 
@@ -48,6 +49,22 @@ const MainContent: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'News':
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">Market News Hub</h2>
+                <p className="text-gray-400 text-sm mt-1">AI-powered market insights and analysis</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse"></div>
+                <span className="text-xs text-neon-cyan font-bold">LIVE UPDATES</span>
+              </div>
+            </div>
+            <NewsHub />
+          </div>
+        )
       case 'Live Discussions':
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

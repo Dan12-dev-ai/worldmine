@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  market-news-agent:
+    build: .
+    container_name: worldmine-news-agent
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - worldmine-network
+
+  # Optional: Add a scheduler service for automated runs
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: worldmine-scheduler
+    restart: unless-stopped
+    command: daemon --docker
+    environment:
+      - OFELIA_CRON_RUN_AGENT=0 */6 * * * python /app/main.py
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - market-news-agent
+    networks:
+      - worldmine-network
+
+networks:
+  worldmine-network:
+    driver: bridge
+
+volumes:
+  logs:
