@@ -1,0 +1,71 @@
+{
+  "navbar": {
+    "marketplace": "Marketplace",
+    "contracts": "Contracts",
+    "profile": "Profile",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "marketplace": {
+    "title": "Global Mining Marketplace",
+    "subtitle": "Trade commodities with secure smart contracts",
+    "search": "Search commodities...",
+    "category": "Category",
+    "price": "Price",
+    "quantity": "Quantity",
+    "seller": "Seller",
+    "viewDetails": "View Details",
+    "pricePerTon": "Per Metric Ton",
+    "fobTerms": "FOB Terms",
+    "verifiedSeller": "Verified Seller",
+    "readyToShip": "Ready to Ship",
+    "buyNow": "Buy Now",
+    "makeOffer": "Make Offer",
+    "liveVideoDiscussion": "Live Video Discussion",
+    "arPreview": "AR Material Preview"
+  },
+  "contracts": {
+    "title": "Smart Contracts",
+    "create": "Create Contract",
+    "view": "View Contract",
+    "sign": "Sign Contract",
+    "dualLanguage": "Dual Language View",
+    "original": "Original",
+    "translated": "Translated",
+    "tamperAlert": "⚠️ Tamper Attempt Detected",
+    "hashMismatch": "Contract hash mismatch! The document has been modified."
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "biometric": "Use Biometric Authentication",
+    "passkey": "Sign in with Passkey",
+    "twoFactor": "Two-Factor Authentication Required"
+  },
+  "security": {
+    "fraudDetection": "Fraud Detection",
+    "anomalyDetected": "Anomaly Detected",
+    "newLocation": "New login location detected",
+    "verifyIdentity": "Please verify your identity"
+  },
+  "categories": {
+    "gold": "Gold",
+    "silver": "Silver", 
+    "copper": "Copper",
+    "platinum": "Platinum",
+    "diamonds": "Diamonds",
+    "rare_earth": "Rare Earth Metals"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close"
+  }
+}

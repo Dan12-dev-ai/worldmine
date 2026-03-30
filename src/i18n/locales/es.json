@@ -1,0 +1,63 @@
+{
+  "navbar": {
+    "marketplace": "Mercado",
+    "contracts": "Contratos",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "language": "Idioma"
+  },
+  "marketplace": {
+    "title": "Mercado Global de Minería",
+    "subtitle": "Comercialice commodities con contratos inteligentes seguros",
+    "search": "Buscar commodities...",
+    "category": "Categoría",
+    "price": "Precio",
+    "quantity": "Cantidad",
+    "seller": "Vendedor",
+    "viewDetails": "Ver Detalles"
+  },
+  "contracts": {
+    "title": "Contratos Inteligentes",
+    "create": "Crear Contrato",
+    "view": "Ver Contrato",
+    "sign": "Firmar Contrato",
+    "dualLanguage": "Vista Bilingüe",
+    "original": "Original",
+    "translated": "Traducido",
+    "tamperAlert": "⚠️ Intento de Manipulación Detectado",
+    "hashMismatch": "¡Discrepancia de hash! El documento ha sido modificado."
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "signOut": "Cerrar Sesión",
+    "biometric": "Usar Autenticación Biométrica",
+    "passkey": "Iniciar con Llave de Acceso",
+    "twoFactor": "Autenticación de Dos Factores Requerida"
+  },
+  "security": {
+    "fraudDetection": "Detección de Fraude",
+    "anomalyDetected": "Anomalía Detectada",
+    "newLocation": "Nuevo inicio de sesión detectado",
+    "verifyIdentity": "Por favor verifique su identidad"
+  },
+  "categories": {
+    "gold": "Oro",
+    "silver": "Plata",
+    "copper": "Cobre",
+    "platinum": "Platino",
+    "diamonds": "Diamantes",
+    "rare_earth": "Metales de Tierras Raras"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar"
+  }
+}

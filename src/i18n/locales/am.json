@@ -1,0 +1,63 @@
+{
+  "navbar": {
+    "marketplace": "ገበያ",
+    "contracts": "ስምሪቶች",
+    "profile": "መገለጫ",
+    "settings": "ቅንብሮች",
+    "language": "ቋንቋ"
+  },
+  "marketplace": {
+    "title": "ዓለማዊ የአለም የማዕድን ገበያ",
+    "subtitle": "ከደህና የእውነታ ስምሪቶች ጋር ዕቃዎችን ይውዱ",
+    "search": "ዕቃዎችን ይፈልጉ...",
+    "category": "ምድብ",
+    "price": "ዋጋ",
+    "quantity": "መጠን",
+    "seller": "ሻጭ",
+    "viewDetails": "ዝርዝሮችን ይመልከቱ"
+  },
+  "contracts": {
+    "title": "የእውነታ ስምሪቶች",
+    "create": "ስምሪት ይፍጠሩ",
+    "view": "ስምሪት ይመልከቱ",
+    "sign": "ስምሪት ይፈርሙ",
+    "dualLanguage": "የሁለት ቋንቋ እይታ",
+    "original": "ኦሪጅናል",
+    "translated": "የተተረጎመ",
+    "tamperAlert": "⚠️ የማጥፋት ሙከራ ተለመደ",
+    "hashMismatch": "የሃሽ ልክ አይደለም! ሰነዱ ተለውጧል።"
+  },
+  "auth": {
+    "signIn": "ይግቡ",
+    "signUp": "ይመዝገቡ",
+    "signOut": "ይውጡ",
+    "biometric": "የባዮሜትሪክ ማረጋገጫ ይጠቀሙ",
+    "passkey": "በቁልፍ ይግቡ",
+    "twoFactor": "የሁለት ደረጃ ማረጋገጫ ያስፈልጋል"
+  },
+  "security": {
+    "fraudDetection": "የሙሽራው ማስረጃ",
+    "anomalyDetected": "ያልተለመደ ነገር ተለመደ",
+    "newLocation": "አዲስ የመግቢያ ቦታ ተለመደ",
+    "verifyIdentity": "እባክዎን ተቈጥሮን ያረጋግጡ"
+  },
+  "categories": {
+    "gold": "ወርቅ",
+    "silver": "ብር",
+    "copper": "ነጭ ሳህዲ",
+    "platinum": "ፕላቲንም",
+    "diamonds": "አልማዝ",
+    "rare_earth": "የማህጠረት ጠጣሮ ዋልዶች"
+  },
+  "common": {
+    "loading": "በመጠን...",
+    "error": "ስህተት",
+    "success": "ውና",
+    "cancel": "ይሰርዙ",
+    "confirm": "ያረጋግጡ",
+    "save": "ያስቀምጡ",
+    "edit": "ያርትዑ",
+    "delete": "ይሰርዙ",
+    "close": "ይዝጉ"
+  }
+}

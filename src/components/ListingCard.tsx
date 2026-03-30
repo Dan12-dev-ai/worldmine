@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { MapPin, Star, Video, Box, ShieldCheck, Zap } from 'lucide-react'
 import { Button } from './ui/button'
 import { Listing } from '../data/commodities'
@@ -9,6 +10,7 @@ interface ListingCardProps {
 }
 
 const ListingCard: React.FC<ListingCardProps> = React.memo(({ listing }) => {
+  const { t } = useTranslation()
   const { setSelectedListing, setIsTransactionModalOpen, setActiveTab } = useMarketplaceStore()
 
   const handleBuyNow = () => {
@@ -68,33 +70,33 @@ const ListingCard: React.FC<ListingCardProps> = React.memo(({ listing }) => {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-white">${listing.price.toLocaleString()}</div>
-            <div className="text-[10px] text-gray-500 font-bold uppercase">Per Metric Ton</div>
+            <div className="text-[10px] text-gray-500 font-bold uppercase">{t('marketplace.pricePerTon')}</div>
           </div>
         </div>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-6">
-          <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 font-bold uppercase">FOB Terms</span>
+          <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 font-bold uppercase">{t('marketplace.fobTerms')}</span>
           <div className="px-2 py-1 rounded bg-neon-emerald/5 border border-neon-emerald/20 text-[9px] text-neon-emerald font-bold uppercase flex items-center">
             <ShieldCheck className="w-2.5 h-2.5 mr-1" />
-            Verified Seller
+            {t('marketplace.verifiedSeller')}
           </div>
-          <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 font-bold uppercase">Ready to Ship</span>
+          <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 font-bold uppercase">{t('marketplace.readyToShip')}</span>
         </div>
 
         {/* Actions */}
         <div className="space-y-3 mt-auto">
           <div className="grid grid-cols-2 gap-3">
-            <Button onClick={handleBuyNow} variant="cyber" className="h-11 font-bold uppercase tracking-widest text-xs">Buy Now</Button>
-            <Button variant="ghost" className="h-11 border border-white/10 font-bold uppercase tracking-widest text-xs hover:bg-white/5">Make Offer</Button>
+            <Button onClick={handleBuyNow} variant="cyber" className="h-11 font-bold uppercase tracking-widest text-xs">{t('marketplace.buyNow')}</Button>
+            <Button variant="ghost" className="h-11 border border-white/10 font-bold uppercase tracking-widest text-xs hover:bg-white/5">{t('marketplace.makeOffer')}</Button>
           </div>
           <Button onClick={handleStartDiscussion} variant="ghost" className="w-full h-11 border border-neon-cyan/30 text-neon-cyan font-bold uppercase tracking-widest text-xs hover:bg-neon-cyan/5">
             <Video className="w-4 h-4 mr-2" />
-            Live Video Discussion
+            {t('marketplace.liveVideoDiscussion')}
           </Button>
           <Button variant="ghost" className="w-full h-11 border border-white/10 text-gray-400 font-bold uppercase tracking-widest text-xs hover:text-white">
             <Box className="w-4 h-4 mr-2" />
-            AR Material Preview
+            {t('marketplace.arPreview')}
           </Button>
         </div>
       </div>
