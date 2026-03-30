@@ -1,37 +1,7 @@
 {
   "rewrites": [
-    {
-      "source": "/api/translate",
-      "destination": "/api/translate"
-    },
-    {
-      "source": "/api/auth/webauthn",
-      "destination": "/api/auth/webauthn"
-    },
-    {
-      "source": "/api/security/fraud-detection",
-      "destination": "/api/security/fraud-detection"
-    },
-    {
-      "source": "/api/contracts/:path*",
-      "destination": "/api/contracts/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "functions": {
-    "api/translate.js": {
-      "maxDuration": 30
-    },
-    "api/auth/webauthn.js": {
-      "maxDuration": 10
-    },
-    "api/security/fraud-detection.js": {
-      "maxDuration": 15
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",

@@ -27,7 +27,7 @@ const SecurityTestPanel: React.FC = () => {
         testName: 'SQL Injection',
         input: sqlAttempt.substring(0, 50) + '...',
         expected: 'fail',
-        actual: result.isValid ? 'pass' : 'fail',
+        actual: result.isValid ? 'pass' as const : 'fail' as const,
         message: result.error || 'Valid input detected'
       });
     }
@@ -39,7 +39,7 @@ const SecurityTestPanel: React.FC = () => {
         testName: 'XSS Attack',
         input: xssAttempt.substring(0, 50) + '...',
         expected: 'fail',
-        actual: result.isValid ? 'pass' : 'fail',
+        actual: result.isValid ? 'pass' as const : 'fail' as const,
         message: result.error || 'Valid input detected'
       });
     }
@@ -51,7 +51,7 @@ const SecurityTestPanel: React.FC = () => {
         testName: 'Large Input',
         input: `${largeInput.length} characters`,
         expected: 'fail',
-        actual: result.isValid ? 'pass' : 'fail',
+        actual: result.isValid ? 'pass' as const : 'fail' as const,
         message: result.error || 'Valid input detected'
       });
     }
@@ -63,7 +63,7 @@ const SecurityTestPanel: React.FC = () => {
         testName: 'Empty Input',
         input: JSON.stringify(emptyInput),
         expected: 'fail',
-        actual: result.isValid ? 'pass' : 'fail',
+        actual: result.isValid ? 'pass' as const : 'fail' as const,
         message: result.error || 'Valid input detected'
       });
     }
@@ -82,7 +82,7 @@ const SecurityTestPanel: React.FC = () => {
         testName: 'Email Validation',
         input: emailTest.email,
         expected: emailTest.expected,
-        actual: result.isValid ? 'pass' : 'fail',
+        actual: result.isValid ? 'pass' as const : 'fail' as const,
         message: result.error || 'Valid email detected'
       });
     }
