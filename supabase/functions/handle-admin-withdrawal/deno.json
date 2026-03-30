@@ -1,0 +1,13 @@
+{
+  "imports": {
+    "supabase": "https://esm.sh/@supabase/supabase-js@2",
+    "crypto": "https://deno.land/std@0.168.0/crypto/mod.ts"
+  },
+  "tasks": {
+    "serve": "deno run --allow-net --allow-env index.ts"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"]
+  }
+}
