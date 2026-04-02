@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worldmine - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .offline-container {
+            max-width: 500px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .features {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .features h3 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #00d4ff;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .retry-button {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #0a0e27;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.4);
+        }
+
+        .retry-button:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            font-size: 0.9rem;
+        }
+
+        .language-selector {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+
+        @media (max-width: 480px) {
+            .offline-container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .icon {
+                font-size: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="icon">🌍</div>
+        <h1>Worldmine Offline</h1>
+        <p class="description">
+            You're currently offline. Worldmine will continue to work with cached data, but some features require an internet connection.
+        </p>
+
+        <div class="features">
+            <h3>Available Offline</h3>
+            <ul class="feature-list">
+                <li>Cached marketplace listings</li>
+                <li>Daily Mini news articles</li>
+                <li>Previously viewed contracts</li>
+                <li>Basic navigation and UI</li>
+            </ul>
+        </div>
+
+        <button class="retry-button" onclick="window.location.reload()">
+            🔄 Try Reconnecting
+        </button>
+
+        <div class="status">
+            <strong>Status:</strong> Offline Mode<br>
+            <small>Last sync: <span id="lastSync">Just now</span></small>
+        </div>
+
+        <div class="language-selector">
+            <button class="lang-btn" onclick="setLanguage('en')">English</button>
+            <button class="lang-btn" onclick="setLanguage('es')">Español</button>
+            <button class="lang-btn" onclick="setLanguage('am')">አማርኛ</button>
+        </div>
+    </div>
+
+    <script>
+        // Update last sync time
+        function updateLastSync() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastSync').textContent = timeString;
+        }
+
+        // Language switching (basic implementation)
+        function setLanguage(lang) {
+            const translations = {
+                en: {
+                    title: 'Worldmine Offline',
+                    description: "You're currently offline. Worldmine will continue to work with cached data, but some features require an internet connection.",
+                    available: 'Available Offline',
+                    status: 'Status: Offline Mode',
+                    lastSync: 'Last sync:',
+                    retry: '🔄 Try Reconnecting'
+                },
+                es: {
+                    title: 'Worldmine Sin Conexión',
+                    description: 'Actualmente estás sin conexión. Worldmine continuará funcionando con datos en caché, pero algunas funciones requieren conexión a internet.',
+                    available: 'Disponible Sin Conexión',
+                    status: 'Estado: Modo Sin Conexión',
+                    lastSync: 'Última sincronización:',
+                    retry: '🔄 Intentar Reconectar'
+                },
+                am: {
+                    title: 'ዎርልድማይን ከኢንተርኔት ውጪ',
+                    description: 'አሁን ከኢንተርኔት ውጪ ነዎት። ዎርልድማይን በካሸው ዳታ ከተቀመጠ ይቀጥላል፣ ግን አንዳንድ ባህሪዎች ኢንተርኔት ይፈልጋሉ።',
+                    available: 'ከኢንተርኔት ውጪ የሚገኝ',
+                    status: 'ሁኔታ: ከኢንተርኔት ውጪ ሁኔታ',
+                    lastSync: 'የመጨረሻው ሲንክ:',
+                    retry: '🔄 እንደገና መገናኘት'
+                }
+            };
+
+            const t = translations[lang];
+            if (t) {
+                document.querySelector('h1').textContent = t.title;
+                document.querySelector('.description').textContent = t.description;
+                document.querySelector('.features h3').textContent = t.available;
+                document.querySelector('.status strong').textContent = t.status;
+                document.querySelector('.status small').innerHTML = `${t.lastSync} <span id="lastSync">${document.getElementById('lastSync').textContent}</span>`;
+                document.querySelector('.retry-button').textContent = t.retry;
+            }
+        }
+
+        // Check network status periodically
+        function checkNetworkStatus() {
+            if (navigator.onLine) {
+                console.log('Network is available');
+                // You could automatically reload or show a notification
+            } else {
+                console.log('Still offline');
+                updateLastSync();
+            }
+        }
+
+        // Initialize
+        updateLastSync();
+        setInterval(checkNetworkStatus, 30000); // Check every 30 seconds
+
+        // Listen for network changes
+        window.addEventListener('online', () => {
+            console.log('Back online!');
+            window.location.reload();
+        });
+
+        window.addEventListener('offline', () => {
+            console.log('Gone offline');
+            updateLastSync();
+        });
+
+        // Service Worker communication
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'CACHE_UPDATED') {
+                    console.log('Cache updated');
+                    updateLastSync();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

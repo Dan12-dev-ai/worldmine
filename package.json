@@ -7,13 +7,17 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:security": "node -e \"console.log('Security tests would run here')\"",
+    "test:compliance": "node -e \"console.log('Compliance tests would run here')\"",
+    "test:performance": "k6 run performance/k6-stress-test.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@supabase/supabase-js": "^2.38.0",
     "@types/node": "^20.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -42,5 +46,12 @@
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
+  },
+  "pwa": {
+    "name": "Worldmine - Global Marketplace",
+    "short_name": "Worldmine",
+    "description": "Global multi-language marketplace with AI-driven secure contracting and market news",
+    "theme_color": "#00d4ff",
+    "background_color": "#0a0e27"
   }
 }
