@@ -4,6 +4,7 @@ import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import './i18n'
 import './index.css'
+import './styles/GlobalStyles.css'
 
 // Register Service Worker for PWA functionality
 if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
