@@ -1,0 +1,411 @@
+version: '3.8'
+
+services:
+  # 📊 Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: worldmine-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Grafana - Visualization Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: worldmine-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST}
+      - GF_SMTP_USER=${SMTP_USER}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
+      - GF_SMTP_FROM_ADDRESS=alerts@worldmine.com
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # 🔍 Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: worldmine-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14269:14269"
+      - "14250:14250"
+      - "6831:6831"
+      - "6832:6832"
+      - "5775:5775"
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=9411
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://elasticsearch:9200
+      - ES_USERNAME=elastic
+      - ES_PASSWORD=changeme
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 🔍 Elasticsearch - Log Storage
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: worldmine-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 🔍 Kibana - Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: worldmine-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - SERVER_NAME=worldmine-kibana
+      - SERVER_HOST=0.0.0.0
+    networks:
+      - monitoring
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+
+  # 📊 PostHog - Product Analytics
+  posthog:
+    image: posthog/posthog:latest
+    container_name: worldmine-posthog
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTHOG_SECRET=${POSTHOG_SECRET}
+      - DATABASE_URL=postgresql://posthog:password@postgres:5432/posthog
+      - REDIS_URL=redis://redis:6379
+      - CLICKHOUSE_URL=http://clickhouse:8123/default
+      - KAFKA_ENABLED=false
+      - WEB_SECRET=${POSTHOG_WEB_SECRET}
+      - DISABLE_DB=false
+    networks:
+      - monitoring
+    depends_on:
+      - postgres
+      - redis
+      - clickhouse
+    restart: unless-stopped
+
+  # 🗄️ PostgreSQL - PostHog Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: worldmine-postgres
+    environment:
+      - POSTGRES_DB=posthog
+      - POSTGRES_USER=posthog
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 🗄️ Redis - Caching
+  redis:
+    image: redis:7-alpine
+    container_name: worldmine-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 🗄️ ClickHouse - Analytics Database
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: worldmine-clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 🔍 Sentry - Error Tracking
+  sentry:
+    image: getsentry/sentry:latest
+    container_name: worldmine-sentry
+    ports:
+      - "9000:9000"
+    environment:
+      - SENTRY_SECRET_KEY=${SENTRY_SECRET_KEY}
+      - SENTRY_REDIS_URL=redis://redis:6379/1
+      - SENTRY_POSTGRES_HOST=postgres
+      - SENTRY_POSTGRES_PORT=5432
+      - SENTRY_DB_USER=sentry
+      - SENTRY_DB_PASSWORD=sentry
+      - SENTRY_DB_NAME=sentry
+      - SENTRY_EMAIL_HOST=${SMTP_HOST}
+      - SENTRY_EMAIL_PORT=587
+      - SENTRY_EMAIL_USER=${SMTP_USER}
+      - SENTRY_EMAIL_PASSWORD=${SMTP_PASSWORD}
+      - SENTRY_EMAIL_FROM_ADDRESS=sentry@worldmine.com
+      - SENTRY_SERVER_EMAIL=alerts@worldmine.com
+    volumes:
+      - sentry_data:/data
+    networks:
+      - monitoring
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  # 📊 Node Exporter - System Metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: worldmine-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 cAdvisor - Container Metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: worldmine-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Loki - Log Aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: worldmine-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki/config.yaml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Alertmanager - Alert Management
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: worldmine-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Blackbox Exporter - External Monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: worldmine-blackbox-exporter
+    ports:
+      - "9115:9115"
+    command: --config.file=/etc/blackbox_exporter/config.yml
+    volumes:
+      - ./blackbox/config.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 StatsD - Metrics Aggregation
+  statsd:
+    image: statsd/statsd:latest
+    container_name: worldmine-statsd
+    ports:
+      - "8125:8125/udp"
+      - "8126:8126/tcp"
+    environment:
+      - GRAPHITE_HOST=carbon
+      - GRAPHITE_PORT=2003
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Carbon - Metrics Storage
+  carbon:
+    image: graphiteapp/carbon-cache:latest
+    container_name: worldmine-carbon
+    ports:
+      - "2003:2003"
+      - "2004:2004/udp"
+    volumes:
+      - carbon_data:/opt/graphite/storage/whisper
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Graphite - Metrics Visualization
+  graphite:
+    image: graphiteapp/graphite-statsd:latest
+    container_name: worldmine-graphite
+    ports:
+      - "8081:80"
+      - "2003:2003"
+    environment:
+      - GRAPHITE_STORAGE_DIR=/opt/graphite/storage/whisper
+      - GRAPHITE_TIME_ZONE=UTC
+      - GRAPHITE_LOG_CACHE_PERFORMANCE=1
+    volumes:
+      - carbon_data:/opt/graphite/storage/whisper
+      - graphite_data:/opt/graphite/storage
+    networks:
+      - monitoring
+    depends_on:
+      - carbon
+    restart: unless-stopped
+
+  # 📊 InfluxDB - Time Series Database
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: worldmine-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_DB=worldmine
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_PASSWORD}
+      - INFLUXDB_USER=worldmine
+      - INFLUXDB_USER_PASSWORD=${INFLUXDB_USER_PASSWORD}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - ./influxdb/influxdb.conf:/etc/influxdb2/influxdb.conf
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # 📊 Chronograf - InfluxDB Visualization
+  chronograf:
+    image: chronograf:1.10-alpine
+    container_name: worldmine-chronograf
+    ports:
+      - "8888:8888"
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_USERNAME=admin
+      - INFLUXDB_PASSWORD=${INFLUXDB_PASSWORD}
+    networks:
+      - monitoring
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+
+  # 🔍 Nginx - Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: worldmine-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - nginx_logs:/var/log/nginx
+    networks:
+      - monitoring
+    depends_on:
+      - grafana
+      - kibana
+      - sentry
+      - jaeger
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  clickhouse_data:
+    driver: local
+  sentry_data:
+    driver: local
+  loki_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+  carbon_data:
+    driver: local
+  graphite_data:
+    driver: local
+  influxdb_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

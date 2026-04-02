@@ -9,6 +9,7 @@ import RegistrationModal from './components/RegistrationModal'
 import TransactionModal from './components/TransactionModal'
 import MarketplaceModal from './components/MarketplaceModal'
 import BackgroundParticles from './components/BackgroundParticles'
+import KeepAlive from './components/KeepAlive'
 import { useMarketplaceStore } from './store/marketplaceStore'
 import { Mic } from 'lucide-react'
 import { Button } from './components/ui/button'
@@ -29,6 +30,9 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
+      {/* KeepAlive Component - Prevents Render from sleeping */}
+      <KeepAlive />
+      
       <div className="min-h-screen bg-cyber-dark relative overflow-hidden">
         {/* Background Particles */}
         <BackgroundParticles />

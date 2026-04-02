@@ -106,12 +106,27 @@ async def log_requests(request: Request, call_next):
 @app.get("/health")
 @limiter.limit("100/minute")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint for Render keep-alive"""
     return {
         "status": "healthy",
         "timestamp": time.time(),
         "version": "1.0.0",
-        "service": "worldmine-ai-agent"
+        "service": "worldmine-ai-agent",
+        "uptime": time.time(),
+        "environment": os.getenv("ENVIRONMENT", "production")
+    }
+
+# API Health endpoint (alternative path)
+@app.get("/api/health")
+@limiter.limit("100/minute")
+async def api_health_check():
+    """API health check endpoint for frontend keep-alive"""
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "version": "1.0.0",
+        "service": "worldmine-api",
+        "message": "Worldmine API is operational"
     }
 
 # Root endpoint
