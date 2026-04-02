@@ -30,87 +30,6 @@ export default defineConfig({
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ],
-        shortcuts: [
-          {
-            name: 'Marketplace',
-            short_name: 'Market',
-            description: 'Browse marketplace listings',
-            url: '/marketplace',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Create Listing',
-            short_name: 'Create',
-            description: 'Create new listing',
-            url: '/create-listing',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Wallet',
-            short_name: 'Wallet',
-            description: 'View your wallet',
-            url: '/wallet',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          }
-        ]
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              },
-              cacheKeyWillBeUsed: async ({ request }) => {
-                return `${request.url}?timestamp=${Date.now()}`
-              }
-            }
-          },
-          {
-            urlPattern: /^https:\/\/worldmine\.vercel\.app\/api\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'worldmine-api',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              }
-            }
-          },
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              }
-            }
-          },
-          {
-            urlPattern: /\.(?:js|css)$/,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'static-resources',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
-              }
-            }
           }
         ]
       }
@@ -118,10 +37,6 @@ export default defineConfig({
     compression({
       algorithm: 'gzip',
       ext: '.gz'
-    }),
-    compression({
-      algorithm: 'brotliCompress',
-      ext: '.br'
     })
   ],
   resolve: {
@@ -153,8 +68,5 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom', '@supabase/supabase-js']
-  },
-  define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0')
   }
 })

@@ -129,9 +129,34 @@ export interface ConsentLog {
 
 export class ComplianceService {
   private supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    import.meta.env.VITE_SUPABASE_URL!,
+    import.meta.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+
+  private async generateDeviceFingerprint(): Promise<string> {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillText('Device fingerprint', 2, 2);
+    }
+
+    const fingerprintData = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      new Date().getTimezoneOffset(),
+      canvas.toDataURL()
+    ].join('|');
+
+    // Hash the fingerprint
+    const encoder = new TextEncoder();
+    const data = encoder.encode(fingerprintData);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
   // KYC Management
   async initializeKYC(userId: string, tier: 1 | 2 | 3, email: string, phone: string): Promise<KYCProfile> {
@@ -329,8 +354,8 @@ export class ComplianceService {
     contractSha256: string,
     termsVersion: string
   ): Promise<ESignatureComplianceLog> {
-    const webauthn = new WebAuthnService();
-    const deviceFingerprint = await webauthn.generateDeviceFingerprint();
+    // Generate device fingerprint
+    const fingerprint = await this.generateDeviceFingerprint();
     
     // Get IP and location (in production, use proper geolocation service)
     const ipAddress = '192.168.1.100'; // Would get from request
@@ -475,7 +500,7 @@ export class ComplianceService {
   }
 
   // Compliance Reporting
-  async generateComplianceReport(startDate: string, endDate: string): Promise<{
+  async generateComplianceReport(_startDate: string, _endDate: string): Promise<{
     summary: {
       totalUsers: number;
       kycCompliant: number;
