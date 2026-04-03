@@ -4,10 +4,9 @@ uvicorn
 google-generativeai
 supabase
 python-dotenv
-langgraph>=0.0.10
-langchain-openai>=0.0.5
-tavily-python>=0.3.0
-tiktoken==0.5.2
+langgraph
+langchain-openai
+tavily-python
 
 # Basic web utilities
 requests
