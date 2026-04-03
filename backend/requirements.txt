@@ -1,11 +1,13 @@
 fastapi
 uvicorn[standard]
 google-generativeai
+anthropic
+langchain
+langchain-openai
+langgraph
+tavily-python
 supabase
 python-dotenv
-langgraph
-langchain-openai
-tavily-python
 pydantic-settings
 
 # Standard library (no need to install)
