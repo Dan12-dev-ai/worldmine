@@ -1,6 +1,6 @@
 """
-Simplified Worldmine FastAPI Application for Render Free Tier
-Production-ready API server with essential functionality only
+Worldmine FastAPI Application with CORS Configuration
+Production-ready API server for AI agent services
 """
 
 import os
@@ -13,6 +13,9 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.middleware.gzip import GZipMiddleware
 import uvicorn
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from cors_config import configure_cors, validate_cors_origin, add_security_headers
 from main_simple import SimpleMarketNewsAgent
@@ -23,6 +26,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -46,6 +52,16 @@ app = FastAPI(
 
 # Configure CORS
 configure_cors(app)
+
+# Add rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Add security headers middleware
+@app.middleware("http")
+async def security_headers_middleware(request: Request, call_next):
+    """Add security headers to all responses"""
+    return await add_security_headers(request, call_next)
 
 # Add trusted host middleware
 app.add_middleware(
@@ -88,6 +104,7 @@ async def log_requests(request: Request, call_next):
 
 # Health check endpoint
 @app.get("/health")
+@limiter.limit("100/minute")
 async def health_check():
     """Health check endpoint for Render keep-alive"""
     return {
@@ -101,6 +118,7 @@ async def health_check():
 
 # API Health endpoint (alternative path)
 @app.get("/api/health")
+@limiter.limit("100/minute")
 async def api_health_check():
     """API health check endpoint for frontend keep-alive"""
     return {
@@ -113,6 +131,7 @@ async def api_health_check():
 
 # Root endpoint
 @app.get("/")
+@limiter.limit("100/minute")
 async def root():
     """Root endpoint with API information"""
     return {
@@ -126,13 +145,14 @@ async def root():
             "analyze": "/analyze",
             "chat": "/chat",
             "translate": "/translate",
-            "news": "/news/process"
+            "news": "/news"
         },
         "status": "operational"
     }
 
 # News analysis endpoint
 @app.post("/analyze")
+@limiter.limit("30/minute")
 async def analyze_news(request: Request):
     """Analyze news articles and extract insights"""
     try:
@@ -168,6 +188,7 @@ async def analyze_news(request: Request):
 
 # Chat endpoint
 @app.post("/chat")
+@limiter.limit("60/minute")
 async def chat_with_ai(request: Request):
     """Chat with AI assistant"""
     try:
@@ -176,7 +197,8 @@ async def chat_with_ai(request: Request):
         if not data.get("message"):
             raise HTTPException(status_code=400, detail="Message is required")
         
-        # Simple response for now
+        # For now, return a simple response
+        # In production, integrate with actual AI model
         return {
             "success": True,
             "response": f"I received your message: {data['message']}",
@@ -189,6 +211,7 @@ async def chat_with_ai(request: Request):
 
 # Translate endpoint
 @app.post("/translate")
+@limiter.limit("100/minute")
 async def translate_text(request: Request):
     """Translate text to Amharic"""
     try:
@@ -197,7 +220,8 @@ async def translate_text(request: Request):
         if not data.get("text"):
             raise HTTPException(status_code=400, detail="Text is required")
         
-        # Simple placeholder translation
+        # For now, return a placeholder
+        # In production, integrate with Google Translate API
         return {
             "success": True,
             "original": data["text"],
@@ -212,6 +236,7 @@ async def translate_text(request: Request):
 
 # News processing endpoint
 @app.post("/news/process")
+@limiter.limit("10/minute")
 async def process_news(request: Request):
     """Process news articles and post to database"""
     try:
@@ -239,6 +264,7 @@ async def process_news(request: Request):
 
 # Metrics endpoint
 @app.get("/metrics")
+@limiter.limit("100/minute")
 async def get_metrics():
     """Get API metrics and status"""
     return {
@@ -251,6 +277,13 @@ async def get_metrics():
             "chat": "/chat",
             "translate": "/translate",
             "news/process": "/news/process"
+        },
+        "rate_limits": {
+            "analyze": "30/minute",
+            "chat": "60/minute",
+            "translate": "100/minute",
+            "news/process": "10/minute",
+            "default": "100/minute"
         },
         "cors": {
             "allowed_origins": ["https://worldmine.vercel.app"],
