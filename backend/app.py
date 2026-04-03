@@ -113,23 +113,8 @@ async def api_health_check():
 
 # Root endpoint
 @app.get("/")
-async def root():
-    """Root endpoint with API information"""
-    return {
-        "name": "Worldmine AI Agent API",
-        "version": "1.0.0",
-        "description": "AI-powered market analysis and news processing",
-        "endpoints": {
-            "health": "/health",
-            "docs": "/docs",
-            "redoc": "/redoc",
-            "analyze": "/analyze",
-            "chat": "/chat",
-            "translate": "/translate",
-            "news": "/news/process"
-        },
-        "status": "operational"
-    }
+def read_root():
+    return {"status": "online", "project": "Worldmine"}
 
 # News analysis endpoint
 @app.post("/analyze")
