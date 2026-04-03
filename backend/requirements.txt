@@ -1,4 +1,3 @@
-# Essential libraries for Worldmine Backend
 fastapi
 uvicorn
 google-generativeai
@@ -7,13 +6,6 @@ python-dotenv
 langgraph
 langchain-openai
 tavily-python
-
-# Basic web utilities
-requests
-python-multipart
-
-# Basic security
-cryptography
 
 # Standard library (no need to install)
 # asyncio
