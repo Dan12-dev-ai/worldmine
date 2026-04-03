@@ -113,8 +113,8 @@ async def api_health_check():
 
 # Root endpoint
 @app.get("/")
-def read_root():
-    return {"status": "online", "project": "Worldmine"}
+async def root():
+    return {"status": "online", "platform": "Worldmine AI"}
 
 # News analysis endpoint
 @app.post("/analyze")
