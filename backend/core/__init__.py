@@ -9,6 +9,14 @@ from .StateManagement import (
     FeatureStatus,
     unified_state_manager
 )
+from .SovereignAuth import (
+    SovereignAuthSystem,
+    SovereignUser,
+    AuthSession,
+    AuthLayer,
+    AuthStatus,
+    sovereign_auth_system
+)
 
 __all__ = [
     "UnifiedStateManager",
@@ -16,5 +24,11 @@ __all__ = [
     "FeatureRequest",
     "FeaturePriority",
     "FeatureStatus",
-    "unified_state_manager"
+    "unified_state_manager",
+    "SovereignAuthSystem",
+    "SovereignUser",
+    "AuthSession",
+    "AuthLayer",
+    "AuthStatus",
+    "sovereign_auth_system"
 ]

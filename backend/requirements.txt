@@ -50,6 +50,17 @@ flake8
 mypy
 pre-commit
 
+# Sovereign Authentication Dependencies
+webauthn
+py-webauthn
+liboqs-python
+# For development (mock implementations)
+# Uncomment for production:
+# @simplewebauthn/browser
+# @ceramicnetwork/http-client
+# lambdaworks
+# circom
+
 # Standard library (no need to install)
 # asyncio
 # time

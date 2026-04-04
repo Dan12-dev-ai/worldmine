@@ -19,10 +19,11 @@ from fastapi.middleware.gzip import GZipMiddleware
 import uvicorn
 
 # Import core unified state management
-from core import unified_state_manager, UnifiedUserSession
+from core import unified_state_manager, UnifiedUserSession, sovereign_auth_system
 
 # Import unified services
 from services.unified import guardian_ai_vault, satellite_transaction_controller, micro_insurance_oracle
+from services.sovereign import sovereign_onboarding_service
 
 # Import existing services
 from services.marketplace.listings import ListingService
@@ -221,7 +222,242 @@ async def root():
         "priority_logic": "Critical Security > High Priority > Medium > Low > Standard"
     }
 
-# ===== UNIFIED ARCHITECTURE ENDPOINTS =====
+# ===== SOVEREIGN AUTHENTICATION ENDPOINTS =====
+
+# Phase A: Invisible Handshake (Returning User)
+@app.post("/api/v4/sovereign/invisible-handshake")
+async def invisible_handshake(request: Request):
+    """Phase A: The Invisible Handshake - Silent FIDO2 detection"""
+    try:
+        session_id = getattr(request.state, 'session_id')
+        if not session_id:
+            raise HTTPException(status_code=401, detail="No session found")
+        
+        data = await request.json()
+        user_request = data.get("user_request", {})
+        
+        result = await sovereign_onboarding_service.initiate_invisible_handshake(user_request)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in invisible handshake: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Phase B: Sovereign Forging (New User)
+@app.post("/api/v4/sovereign/forge")
+async def sovereign_forging(request: Request):
+    """Phase B: The Sovereign Forging - New user onboarding"""
+    try:
+        session_id = getattr(request.state, 'session_id')
+        if not session_id:
+            raise HTTPException(status_code=401, detail="No session found")
+        
+        data = await request.json()
+        user_request = data.get("user_request", {})
+        
+        result = await sovereign_onboarding_service.initiate_sovereign_forging(user_request)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in sovereign forging: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/sovereign/step/digital-key")
+async def forge_digital_key(request: Request):
+    """Step 1: The Digital Key - Generate DID and PQC keypair"""
+    try:
+        session_id = getattr(request.state, 'session_id')
+        if not session_id:
+            raise HTTPException(status_code=401, detail="No session found")
+        
+        data = await request.json()
+        step_data = data.get("step_data", {})
+        
+        result = await sovereign_onboarding_service.execute_digital_key_forging(session_id, step_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in digital key forging: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/sovereign/step/behavioral-dna")
+async def enroll_behavioral_dna(request: Request):
+    """Step 2: The Behavioral DNA - Enroll biometrics"""
+    try:
+        session_id = getattr(request.state, 'session_id')
+        if not session_id:
+            raise HTTPException(status_code=401, detail="No session found")
+        
+        data = await request.json()
+        step_data = data.get("step_data", {})
+        
+        result = await sovereign_onboarding_service.execute_behavioral_dna(session_id, step_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in behavioral DNA enrollment: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/sovereign/step/sovereign-shield")
+async def activate_sovereign_shield(request: Request):
+    """Step 3: The Sovereign Shield - Finalize SSI credentials"""
+    try:
+        session_id = getattr(request.state, 'session_id')
+        if not session_id:
+            raise HTTPException(status_code=401, detail="No session found")
+        
+        data = await request.json()
+        step_data = data.get("step_data", {})
+        
+        result = await sovereign_onboarding_service.execute_sovereign_shield(session_id, step_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in sovereign shield activation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v4/sovereign/dashboard/{user_id}")
+async def get_bento_dashboard(user_id: str, request: Request):
+    """Get Bento Dashboard configuration for authenticated user"""
+    try:
+        result = await sovereign_onboarding_service.get_bento_dashboard_config(user_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting Bento dashboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 10-Layer Shield Authentication Endpoints
+@app.post("/api/v4/auth/sovereign/initiate")
+async def initiate_sovereign_auth(request: Request):
+    """Initiate sovereign authentication with 10-layer shield"""
+    try:
+        data = await request.json()
+        auth_request = data.get("auth_request", {})
+        
+        result = await sovereign_auth_system.initiate_sovereign_auth(auth_request)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error initiating sovereign auth: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/fido2/verify")
+async def verify_fido2_passkey(request: Request):
+    """Verify FIDO2 Passkey authentication"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        credential_data = data.get("credential_data", {})
+        
+        result = await sovereign_auth_system.verify_fido2_passkey(session_id, credential_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error verifying FIDO2 passkey: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/ssi/did/verify")
+async def verify_ssi_did(request: Request):
+    """Verify Self-Sovereign Identity (DID) authentication"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        did_data = data.get("did_data", {})
+        
+        result = await sovereign_auth_system.verify_ssi_did(session_id, did_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error verifying SSI DID: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/pqc/verify")
+async def verify_post_quantum(request: Request):
+    """Verify Post-Quantum Cryptography authentication"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        pqc_data = data.get("pqc_data", {})
+        
+        result = await sovereign_auth_system.verify_post_quantum(session_id, pqc_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error verifying PQC: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/zk/verify")
+async def verify_zero_knowledge(request: Request):
+    """Verify Zero-Knowledge Proof authentication"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        zk_data = data.get("zk_data", {})
+        
+        result = await sovereign_auth_system.verify_zero_knowledge(session_id, zk_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error verifying ZK proof: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/behavioral/verify")
+async def verify_behavioral_biometrics(request: Request):
+    """Verify Behavioral Biometrics authentication"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        behavioral_data = data.get("behavioral_data", {})
+        
+        result = await sovereign_auth_system.verify_behavioral_biometrics(session_id, behavioral_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error verifying behavioral biometrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/liveness/verify")
+async def verify_liveness(request: Request):
+    """Verify Liveness Detection"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        liveness_data = data.get("liveness_data", {})
+        
+        result = await sovereign_auth_system.verify_liveness(session_id, liveness_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error verifying liveness: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/auth/complete")
+async def complete_sovereign_auth(request: Request):
+    """Complete sovereign authentication and issue tokens"""
+    try:
+        data = await request.json()
+        session_id = data.get("session_id")
+        
+        result = await sovereign_auth_system.complete_sovereign_auth(session_id)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error completing sovereign auth: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Guardian AI Personal Vault
 @app.post("/api/v3/guardian/monitor-behavior")
