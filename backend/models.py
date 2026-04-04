@@ -663,8 +663,208 @@ Index('idx_market_agents_available', MarketAgent.is_available)
 Index('idx_market_agents_experience', MarketAgent.experience_points.desc())
 Index('idx_market_agents_created', MarketAgent.created_at.desc())
 
-Index('idx_agent_rentals_agent', AgentRental.agent_id)
-Index('idx_agent_rentals_renter', AgentRental.renter_id)
-Index('idx_agent_rentals_status', AgentRental.status)
-Index('idx_agent_rentals_start_time', AgentRental.rental_start_time.desc())
-Index('idx_agent_rentals_created', AgentRental.created_at.desc())
+# Add unified tables at the end of the file
+
+class UnifiedUserSession(Base):
+    __tablename__ = "unified_sessions"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    session_id = Column(String(255), unique=True, nullable=False, index=True)
+    
+    # Core user data (protected by Zero-Knowledge Shield)
+    user_profile = Column(JSON, nullable=False)
+    verification_data = Column(JSON, nullable=False)
+    
+    # Guardian AI Security State
+    security_level = Column(String(50), nullable=False, default='standard')
+    risk_score = Column(Float, nullable=False, default=0.0)
+    behavior_patterns = Column(JSON, nullable=False)
+    security_flags = Column(JSON, nullable=False)
+    is_frozen = Column(Boolean, nullable=False, default=False)
+    freeze_reason = Column(String(500), nullable=True)
+    
+    # Reputation Oracle State
+    trust_score = Column(Float, nullable=False, default=50.0)
+    fee_discount = Column(Float, nullable=False, default=0.0)
+    trade_history = Column(JSON, nullable=False)
+    reputation_factors = Column(JSON, nullable=False)
+    
+    # Satellite Verification State
+    location_verified = Column(Boolean, nullable=False, default=False)
+    satellite_coordinates = Column(JSON, nullable=True)
+    space_verified = Column(Boolean, nullable=False, default=False)
+    sentinel_provenance = Column(String(255), nullable=True)
+    
+    # Micro-Insurance State
+    insurance_active = Column(Boolean, nullable=False, default=False)
+    risk_premium = Column(Float, nullable=False, default=0.0)
+    coverage_amount = Column(Float, nullable=False, default=0.0)
+    insurance_claims = Column(JSON, nullable=False)
+    
+    # Agent Marketplace State
+    owned_agents = Column(JSON, nullable=False)
+    rented_agents = Column(JSON, nullable=False)
+    agent_permissions = Column(JSON, nullable=False)
+    
+    # Legacy Chain State
+    inheritance_configured = Column(Boolean, nullable=False, default=False)
+    heir_addresses = Column(JSON, nullable=False)
+    legacy_triggers = Column(JSON, nullable=False)
+    
+    # Co-Ownership State
+    owned_shares = Column(JSON, nullable=False)
+    dao_tokens = Column(Float, nullable=False, default=0.0)
+    governance_votes = Column(JSON, nullable=False)
+    
+    # ESG Impact State
+    esg_score = Column(Float, nullable=False, default=0.0)
+    ethical_impact_credits = Column(Float, nullable=False, default=0.0)
+    sustainability_metrics = Column(JSON, nullable=False)
+    
+    # Community Oracle State
+    verification_requests = Column(JSON, nullable=False)
+    peer_validations = Column(JSON, nullable=False)
+    community_reputation = Column(Float, nullable=False, default=0.0)
+    
+    # Privacy and security flags
+    pii_protected = Column(Boolean, nullable=False, default=True)
+    encryption_enabled = Column(Boolean, nullable=False, default=True)
+    zk_proof_verified = Column(Boolean, nullable=False, default=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", backref="unified_sessions")
+
+class FeatureExecutionLog(Base):
+    __tablename__ = "feature_execution_logs"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(String(255), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    
+    # Feature execution details
+    feature_name = Column(String(100), nullable=False, index=True)
+    priority = Column(Integer, nullable=False)  # FeaturePriority enum value
+    status = Column(String(20), nullable=False, index=True)  # FeatureStatus enum value
+    
+    # Request and response data
+    request_data = Column(JSON, nullable=False)
+    result_data = Column(JSON, nullable=True)
+    error_message = Column(String(1000), nullable=True)
+    
+    # Execution metrics
+    execution_time_ms = Column(Integer, nullable=False)
+    dependencies_satisfied = Column(Boolean, nullable=False, default=True)
+    blocked_by = Column(String(100), nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", backref="feature_executions")
+
+class InsurancePolicy(Base):
+    __tablename__ = "insurance_policies"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    policy_id = Column(String(100), unique=True, nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    session_id = Column(String(255), nullable=False, index=True)
+    
+    # Policy details
+    coverage_amount = Column(Float, nullable=False)
+    premium_rate = Column(Float, nullable=False)
+    total_premium = Column(Float, nullable=False)
+    policy_type = Column(String(50), nullable=False, default='standard')
+    
+    # Risk assessment
+    risk_factors = Column(JSON, nullable=False)
+    total_risk_score = Column(Float, nullable=False)
+    risk_level = Column(String(20), nullable=False)
+    
+    # Verification status
+    satellite_verified = Column(Boolean, nullable=False, default=False)
+    location_risk = Column(Float, nullable=False, default=0.0)
+    
+    # Policy status
+    active = Column(Boolean, nullable=False, default=True)
+    paid = Column(Boolean, nullable=False, default=False)
+    claims_count = Column(Integer, nullable=False, default=0)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    paid_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", backref="insurance_policies")
+
+class SatelliteVerification(Base):
+    __tablename__ = "satellite_verifications"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    session_id = Column(String(255), nullable=False, index=True)
+    transaction_id = Column(String(100), nullable=True, index=True)
+    
+    # Coordinate data
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    altitude = Column(Float, nullable=True)
+    accuracy = Column(Float, nullable=False)
+    
+    # Sentinel API data
+    satellite_id = Column(String(100), nullable=False)
+    provenance_hash = Column(String(64), nullable=False, index=True)
+    capture_time = Column(DateTime(timezone=True), nullable=False)
+    image_resolution = Column(String(20), nullable=True)
+    cloud_cover = Column(String(10), nullable=True)
+    
+    # Verification results
+    verified = Column(Boolean, nullable=False, default=False)
+    confidence_score = Column(Float, nullable=False)
+    verification_method = Column(String(50), nullable=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Relationships
+    user = relationship("User", backref="satellite_verifications")
+
+# Add indexes for unified tables
+Index('idx_unified_sessions_user', UnifiedUserSession.user_id)
+Index('idx_unified_sessions_session', UnifiedUserSession.session_id)
+Index('idx_unified_sessions_frozen', UnifiedUserSession.is_frozen)
+Index('idx_unified_sessions_trust_score', UnifiedUserSession.trust_score)
+Index('idx_unified_sessions_space_verified', UnifiedUserSession.space_verified)
+Index('idx_unified_sessions_insurance_active', UnifiedUserSession.insurance_active)
+Index('idx_unified_sessions_created', UnifiedUserSession.created_at.desc())
+Index('idx_unified_sessions_updated', UnifiedUserSession.updated_at.desc())
+
+Index('idx_feature_executions_session', FeatureExecutionLog.session_id)
+Index('idx_feature_executions_user', FeatureExecutionLog.user_id)
+Index('idx_feature_executions_feature', FeatureExecutionLog.feature_name)
+Index('idx_feature_executions_status', FeatureExecutionLog.status)
+Index('idx_feature_executions_priority', FeatureExecutionLog.priority)
+Index('idx_feature_executions_created', FeatureExecutionLog.created_at.desc())
+
+Index('idx_insurance_policies_user', InsurancePolicy.user_id)
+Index('idx_insurance_policies_session', InsurancePolicy.session_id)
+Index('idx_insurance_policies_policy_id', InsurancePolicy.policy_id)
+Index('idx_insurance_policies_active', InsurancePolicy.active)
+Index('idx_insurance_policies_paid', InsurancePolicy.paid)
+Index('idx_insurance_policies_expires', InsurancePolicy.expires_at)
+
+Index('idx_satellite_verifications_user', SatelliteVerification.user_id)
+Index('idx_satellite_verifications_session', SatelliteVerification.session_id)
+Index('idx_satellite_verifications_transaction', SatelliteVerification.transaction_id)
+Index('idx_satellite_verifications_provenance', SatelliteVerification.provenance_hash)
+Index('idx_satellite_verifications_verified', SatelliteVerification.verified)
+Index('idx_satellite_verifications_created', SatelliteVerification.created_at.desc())
