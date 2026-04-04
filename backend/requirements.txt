@@ -13,7 +13,7 @@ sqlalchemy
 psycopg2-binary
 redis
 numpy
-pandas
+# REMOVED: pandas (as requested)
 opencv-python
 pillow
 websockets

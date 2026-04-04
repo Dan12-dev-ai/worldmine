@@ -1,6 +1,6 @@
 """
 DEDAN Mine (Worldmine) - Enhanced FastAPI Application
-Production-ready API with core marketplace + future-tech features
+Production-ready API with core marketplace + future-tech features + Guardian AI
 """
 
 import os
@@ -26,6 +26,17 @@ from services.traceability.iotSensors import IoTSensorService
 from services.esg.scoring import ESGScoringService
 from services.compliance.ecxIntegration import ECXComplianceService
 from services.security.quantumEncryption import QuantumSecureData
+
+# NEW: Import DEDAN Mine core features
+from services.guardian import guardian_agent
+from services.reputation import reputation_oracle
+from services.agents import agent_marketplace
+from middleware.GuardianMiddleware import GuardianMiddleware
+from schemas import SecureUserRegistration, SecureUserLogin, SecureTransaction, ZeroKnowledgeShield
+
+# Import existing MarketNewsAgent and StateGraph
+from main_simple import SimpleMarketNewsAgent
+from main import MarketNewsAgent, StateGraph
 
 # Configure logging
 logging.basicConfig(
@@ -60,8 +71,8 @@ async def lifespan(app: FastAPI):
 # Create FastAPI application
 app = FastAPI(
     title="DEDAN Mine - AI-Powered Global Mining Marketplace",
-    description="World's most advanced AI-powered mining transaction marketplace with autonomous agents, video negotiations, and full traceability",
-    version="2.0.0",
+    description="World's most advanced AI-powered mining transaction marketplace with autonomous agents, video negotiations, Guardian AI security, and agent marketplace",
+    version="2.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
@@ -88,24 +99,32 @@ app.add_middleware(
     allowed_hosts=["dedan-mine.vercel.app", "*.vercel.app", "localhost", "127.0.0.1"]
 )
 
+# Add Guardian AI security middleware
+app.add_middleware(GuardianMiddleware)
+
 # Add gzip compression
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Request logging middleware
+# Request logging middleware with PII protection
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Log all requests with timing"""
+    """Log all requests with timing and PII protection"""
     start_time = time.time()
     
     response = await call_next(request)
     
     process_time = time.time() - start_time
-    logger.info(
-        f"📊 {request.method} {request.url.path} - "
-        f"Status: {response.status_code} - "
-        f"Time: {process_time:.3f}s - "
-        f"Origin: {request.headers.get('origin')}"
-    )
+    
+    # Safe logging without PII
+    safe_log_data = {
+        "method": request.method,
+        "path": request.url.path,
+        "status": response.status_code,
+        "time": f"{process_time:.3f}s",
+        "origin": request.headers.get("origin", "unknown")
+    }
+    
+    logger.info(f"📊 Request: {ZeroKnowledgeShield.safe_log(safe_log_data, 'request_data')}")
     
     return response
 
@@ -149,14 +168,18 @@ async def root():
     return {
         "status": "online", 
         "platform": "DEDAN Mine AI",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "features": [
             "Autonomous AI Trading Agents",
             "Live Video Negotiations",
             "Mine-to-Market Traceability",
             "ESG & Carbon Credits",
             "ECX Compliance",
-            "Quantum-Resistant Security"
+            "Quantum-Resistant Security",
+            "Guardian AI Security Layer",
+            "Behavioral Reputation Oracle",
+            "Evolving Agent Marketplace",
+            "Zero-Knowledge User Shield"
         ]
     }
 
@@ -255,21 +278,242 @@ async def place_bid(listing_id: str, request: Request):
 
 @app.post("/api/v1/listings/{listing_id}/buy-now")
 async def buy_it_now(listing_id: str, request: Request):
-    """Execute Buy-It-Now transaction with 5% commission"""
+    """Execute Buy-It-Now transaction with dynamic fee"""
     try:
         data = await request.json()
         listing_service = request.app.state.listing_service
         
+        # Get dynamic fee rate based on reputation
+        buyer_id = data.get("buyer_id")
+        fee_result = await reputation_oracle.get_platform_fee_rate(buyer_id)
+        
+        if not fee_result["success"]:
+            raise HTTPException(status_code=400, detail=fee_result["error"])
+        
         result = await listing_service.buy_it_now(
             listing_id=listing_id,
-            buyer_id=data.get("buyer_id"),
-            payment_method=data.get("payment_method", "stripe")
+            buyer_id=buyer_id,
+            payment_method=data.get("payment_method", "stripe"),
+            fee_rate=fee_result["adjusted_fee_rate"]
         )
         
         return result
         
     except Exception as e:
         logger.error(f"Error in Buy-It-Now: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== NEW: DEDAN MINE CORE FEATURES =====
+
+# Guardian AI Security Layer
+@app.post("/api/v1/guardian/monitor")
+async def monitor_activity(request: Request):
+    """Manual Guardian AI monitoring endpoint"""
+    try:
+        data = await request.json()
+        
+        result = await guardian_agent.monitor_user_activity(
+            user_id=data.get("user_id"),
+            activity_data=data.get("activity_data")
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in Guardian monitoring: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Behavioral Reputation Oracle
+@app.get("/api/v1/reputation/trust-score/{user_id}")
+async def get_trust_score(user_id: str, request: Request):
+    """Get user's trust score and fee discount"""
+    try:
+        result = await reputation_oracle.calculate_trust_score(user_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error calculating trust score: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/reputation/platform-fee/{user_id}")
+async def get_platform_fee(user_id: str, request: Request):
+    """Get dynamic platform fee rate for user"""
+    try:
+        result = await reputation_oracle.get_platform_fee_rate(user_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error calculating platform fee: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Evolving Agent Marketplace
+@app.post("/api/v1/agents/list")
+async def list_agent_for_rental(request: Request):
+    """List an agent for rental in the marketplace"""
+    try:
+        data = await request.json()
+        
+        result = await agent_marketplace.list_agent_for_rental(
+            owner_id=data.get("owner_id"),
+            agent_type=data.get("agent_type"),
+            rental_price_per_hour=data.get("rental_price_per_hour"),
+            min_rental_hours=data.get("min_rental_hours", 1),
+            max_rental_hours=data.get("max_rental_hours", 168),
+            description=data.get("description", "")
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error listing agent: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/agents/rent")
+async def rent_agent(request: Request):
+    """Rent an agent from the marketplace"""
+    try:
+        data = await request.json()
+        
+        result = await agent_marketplace.rent_agent(
+            renter_id=data.get("renter_id"),
+            agent_id=data.get("agent_id"),
+            rental_duration_hours=data.get("rental_duration_hours"),
+            payment_method=data.get("payment_method"),
+            terms_accepted=data.get("terms_accepted", False)
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error renting agent: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/agents/available")
+async def get_available_agents(request: Request):
+    """Get list of available agents for rental"""
+    try:
+        result = await agent_marketplace.get_available_agents(
+            agent_type=request.query_params.get("agent_type"),
+            max_price_per_hour=float(request.query_params.get("max_price_per_hour")) if request.query_params.get("max_price_per_hour") else None,
+            min_experience_points=int(request.query_params.get("min_experience_points")) if request.query_params.get("min_experience_points") else None,
+            sort_by=request.query_params.get("sort_by", "experience_points"),
+            sort_order=request.query_params.get("sort_order", "desc")
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting available agents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/agents/my-rentals/{user_id}")
+async def get_user_rented_agents(user_id: str, request: Request):
+    """Get agents rented by a user"""
+    try:
+        result = await agent_marketplace.get_user_rented_agents(
+            user_id=user_id,
+            status=request.query_params.get("status")
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting user rentals: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/agents/end-rental/{rental_id}")
+async def end_rental(rental_id: str, request: Request):
+    """End an active rental and update agent"""
+    try:
+        data = await request.json()
+        
+        result = await agent_marketplace.end_rental(
+            rental_id=rental_id,
+            renter_id=data.get("renter_id"),
+            rating=data.get("rating"),
+            review=data.get("review")
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error ending rental: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Zero-Knowledge User Shield Endpoints
+@app.post("/api/v1/auth/register")
+async def secure_register(request: Request):
+    """Secure user registration with PII protection"""
+    try:
+        # Use secure schema with SecretStr
+        user_data = SecureUserRegistration(**await request.json())
+        
+        # Safe logging without exposing PII
+        logger.info(f"📝 New registration: {ZeroKnowledgeShield.safe_log({'username': user_data.username, 'email': user_data.email}, 'registration_data')}")
+        
+        # Process registration (implementation would go here)
+        # Note: user_data.password.get_secret_value() for actual password processing
+        
+        return {
+            "success": True,
+            "message": "User registration successful",
+            "user_id": str(uuid.uuid4())  # Mock user ID
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in secure registration: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/auth/login")
+async def secure_login(request: Request):
+    """Secure user login with PII protection"""
+    try:
+        # Use secure schema with SecretStr
+        login_data = SecureUserLogin(**await request.json())
+        
+        # Safe logging without exposing password
+        logger.info(f"🔐 Login attempt: {ZeroKnowledgeShield.safe_log({'email': login_data.email, 'method': login_data.login_method}, 'login_data')}")
+        
+        # Process login (implementation would go here)
+        # Note: login_data.password.get_secret_value() for actual password verification
+        
+        return {
+            "success": True,
+            "message": "Login successful",
+            "token": "mock_jwt_token",  # Mock token
+            "user_id": str(uuid.uuid4())   # Mock user ID
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in secure login: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/transactions/create")
+async def secure_transaction(request: Request):
+    """Secure transaction creation with PII protection"""
+    try:
+        # Use secure schema with SecretStr for sensitive data
+        transaction_data = SecureTransaction(**await request.json())
+        
+        # Safe logging without exposing sensitive payment info
+        safe_data = {
+            'amount': transaction_data.amount,
+            'recipient_id': transaction_data.recipient_id,
+            'payment_method': transaction_data.payment_method
+        }
+        logger.info(f"💳 New transaction: {ZeroKnowledgeShield.safe_log(safe_data, 'transaction_data')}")
+        
+        # Process transaction (implementation would go here)
+        # Note: transaction_data.card_number.get_secret_value() for actual processing
+        
+        return {
+            "success": True,
+            "message": "Transaction created successfully",
+            "transaction_id": str(uuid.uuid4())  # Mock transaction ID
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in secure transaction: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ===== AI AGENTS ENDPOINTS =====

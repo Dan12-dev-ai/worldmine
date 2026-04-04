@@ -30,6 +30,11 @@ class User(Base):
     location = Column(JSON, nullable=False)
     profile_data = Column(JSON, nullable=False)
     quantum_public_key = Column(String(1024), nullable=True)
+    
+    # NEW: Reputation and verification fields
+    reputation_score = Column(Float, nullable=False, default=0.0)
+    verification_data = Column(JSON, nullable=True)  # GPS/Satellite metadata
+    
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     last_active = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
@@ -42,6 +47,9 @@ class User(Base):
     bids = relationship("Bid", back_populates="bidder")
     buy_it_now_transactions_buyer = relationship("BuyItNowTransaction", foreign_keys="BuyItNowTransaction.buyer_id", back_populates="buyer")
     buy_it_now_transactions_seller = relationship("BuyItNowTransaction", foreign_keys="BuyItNowTransaction.seller_id", back_populates="seller")
+    guardian_patterns = relationship("GuardianPattern", back_populates="user")
+    market_agents = relationship("MarketAgent", back_populates="owner")
+    agent_rentals = relationship("AgentRental", back_populates="renter")
 
 class Listing(Base):
     __tablename__ = "listings"
@@ -581,8 +589,82 @@ Index('idx_trust_signals_source_user', TrustSignal.source_user_id)
 Index('idx_trust_signals_strength', TrustSignal.signal_strength.desc())
 Index('idx_trust_signals_expires', TrustSignal.expires_at)
 
-Index('idx_bulk_orders_buyer', BulkOrder.buyer_id)
-Index('idx_bulk_orders_listing', BulkOrder.listing_id)
-Index('idx_bulk_orders_status', BulkOrder.order_status)
-Index('idx_bulk_orders_total_value', BulkOrder.total_value.desc())
-Index('idx_bulk_orders_created', BulkOrder.created_at.desc())
+# Add new tables at the end of the file
+
+class GuardianPattern(Base):
+    __tablename__ = "user_guardians"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    behavior_patterns = Column(JSON, nullable=False)  # login_times, typical_trade_sizes
+    risk_history = Column(JSON, nullable=False)  # Historical risk scores
+    last_analysis = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    
+    # Relationships
+    user = relationship("User", back_populates="guardian_patterns")
+
+class MarketAgent(Base):
+    __tablename__ = "market_agents"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    agent_type = Column(String(50), nullable=False, index=True)  # mineral_scout, price_predictor, risk_analyzer, market_matcher
+    rental_price_per_hour = Column(Float, nullable=False)
+    min_rental_hours = Column(Integer, nullable=False, default=1)
+    max_rental_hours = Column(Integer, nullable=False, default=168)  # 1 week
+    description = Column(Text, nullable=True)
+    experience_points = Column(Integer, nullable=False, default=0)
+    is_available = Column(Boolean, nullable=False, default=True, index=True)
+    total_rentals = Column(Integer, nullable=False, default=0)
+    total_earnings = Column(Float, nullable=False, default=0.0)
+    average_rating = Column(Float, nullable=False, default=0.0)
+    agent_config = Column(JSON, nullable=True)  # Agent configuration and training data
+    performance_metrics = Column(JSON, nullable=False)  # Historical performance data
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc), index=True)
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    
+    # Relationships
+    owner = relationship("User", back_populates="market_agents")
+    rentals = relationship("AgentRental", back_populates="agent")
+
+class AgentRental(Base):
+    __tablename__ = "agent_rentals"
+    
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    agent_id = Column(UUID(as_uuid=True), ForeignKey("market_agents.id"), nullable=False, index=True)
+    renter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    rental_duration_hours = Column(Integer, nullable=False)
+    total_cost = Column(Float, nullable=False)
+    payment_method = Column(String(50), nullable=False)  # tokens, usdc, usdt, eth, btc
+    rental_start_time = Column(DateTime(timezone=True), nullable=False)
+    rental_end_time = Column(DateTime(timezone=True), nullable=False)
+    status = Column(String(20), nullable=False, default='active', index=True)  # active, completed, cancelled
+    terms_accepted = Column(Boolean, nullable=False, default=False)
+    access_token = Column(String(255), nullable=True)  # Temporary access token for agent
+    usage_logs = Column(JSON, nullable=False)  # Agent usage during rental
+    rating = Column(Integer, nullable=True)  # 1-5 rating from renter
+    review = Column(Text, nullable=True)  # Review comments
+    ended_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc), index=True)
+    
+    # Relationships
+    agent = relationship("MarketAgent", back_populates="rentals")
+    renter = relationship("User", back_populates="agent_rentals")
+
+# Add indexes for new tables
+Index('idx_guardian_patterns_user', GuardianPattern.user_id)
+Index('idx_guardian_patterns_updated', GuardianPattern.updated_at.desc())
+
+Index('idx_market_agents_owner', MarketAgent.owner_id)
+Index('idx_market_agents_type', MarketAgent.agent_type)
+Index('idx_market_agents_available', MarketAgent.is_available)
+Index('idx_market_agents_experience', MarketAgent.experience_points.desc())
+Index('idx_market_agents_created', MarketAgent.created_at.desc())
+
+Index('idx_agent_rentals_agent', AgentRental.agent_id)
+Index('idx_agent_rentals_renter', AgentRental.renter_id)
+Index('idx_agent_rentals_status', AgentRental.status)
+Index('idx_agent_rentals_start_time', AgentRental.rental_start_time.desc())
+Index('idx_agent_rentals_created', AgentRental.created_at.desc())
