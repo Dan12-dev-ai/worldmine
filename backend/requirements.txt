@@ -9,6 +9,46 @@ tavily-python
 supabase
 python-dotenv
 pydantic-settings
+sqlalchemy
+psycopg2-binary
+redis
+numpy
+pandas
+opencv-python
+pillow
+websockets
+python-multipart
+aiofiles
+cryptography
+pyjwt
+passlib
+bcrypt
+email-validator
+python-jose
+alembic
+pytest
+pytest-asyncio
+httpx
+requests
+beautifulsoup4
+selenium
+celery
+kombu
+flower
+prometheus-client
+grafana-api
+elasticsearch
+kafka-python
+pika
+blockchain
+web3
+eth-account
+solidity
+pytest-cov
+black
+flake8
+mypy
+pre-commit
 
 # Standard library (no need to install)
 # asyncio
