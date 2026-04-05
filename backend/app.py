@@ -19,7 +19,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 import uvicorn
 
 # Import core unified state management
-from core import unified_state_manager, UnifiedUserSession, sovereign_auth_system
+from core import unified_state_manager, UnifiedUserSession, sovereign_auth_system, conflict_prevention_system
 
 # Import unified services
 from services.unified import guardian_ai_vault, satellite_transaction_controller, micro_insurance_oracle
@@ -709,6 +709,34 @@ async def legacy_market_analysis(request: Request):
         
     except Exception as e:
         logger.error(f"Error in legacy market analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== CONFLICT PREVENTION ENDPOINTS =====
+
+@app.post("/api/v4/conflict/prevent")
+async def prevent_conflicts(request: Request):
+    """Prevent conflicts before execution"""
+    try:
+        data = await request.json()
+        feature_request = data.get("feature_request", {})
+        
+        result = await conflict_prevention_system.prevent_conflicts(feature_request)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error in conflict prevention: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v4/conflict/statistics")
+async def get_conflict_statistics():
+    """Get conflict prevention statistics"""
+    try:
+        result = await conflict_prevention_system.get_conflict_statistics()
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting conflict statistics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ===== REGULATORY AND TAX COMPLIANCE ENDPOINTS =====
