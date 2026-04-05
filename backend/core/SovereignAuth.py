@@ -755,14 +755,206 @@ class SovereignAuthSystem:
             "user_verified": True
         }
     
-    async def _verify_pqc_key_exchange(self, pqc_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Verify Post-Quantum key exchange"""
-        # Mock PQC verification
+    async def initiate_social_recovery(self, user_id: str, recovery_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Initiate Social Recovery protocol for Sovereign Identity"""
+        try:
+            user = self.sovereign_users.get(user_id)
+            if not user:
+                return {"success": False, "error": "User not found"}
+            
+            # Get trusted recovery guardians
+            guardians = recovery_request.get("guardians", [])
+            threshold = recovery_request.get("threshold", 3)  # Default 3-of-N
+            
+            # Verify guardians are trusted contacts
+            verified_guardians = await self._verify_recovery_guardians(user_id, guardians)
+            
+            if len(verified_guardians) < threshold:
+                return {
+                    "success": False,
+                    "error": f"Insufficient guardians. Need {threshold}, have {len(verified_guardians)}"
+                }
+            
+            # Generate recovery shares
+            recovery_shares = await self._generate_recovery_shares(user, verified_guardians, threshold)
+            
+            # Create recovery session
+            recovery_session = {
+                "user_id": user_id,
+                "recovery_id": str(uuid.uuid4()),
+                "guardians": verified_guardians,
+                "threshold": threshold,
+                "shares": recovery_shares,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "expires_at": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
+                "status": "pending"
+            }
+            
+            # Store recovery session
+            await self._store_recovery_session(recovery_session)
+            
+            # Notify guardians
+            await self._notify_guardians(recovery_session)
+            
+            return {
+                "success": True,
+                "recovery_id": recovery_session["recovery_id"],
+                "threshold": threshold,
+                "guardians_notified": len(verified_guardians),
+                "expires_at": recovery_session["expires_at"],
+                "next_step": "guardian_approval"
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def submit_guardian_approval(self, recovery_id: str, guardian_id: str, approval_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Submit guardian approval for social recovery"""
+        try:
+            # Get recovery session
+            recovery_session = await self._get_recovery_session(recovery_id)
+            if not recovery_session:
+                return {"success": False, "error": "Recovery session not found"}
+            
+            # Verify guardian is authorized
+            if guardian_id not in recovery_session["guardians"]:
+                return {"success": False, "error": "Unauthorized guardian"}
+            
+            # Verify guardian's biometric signature
+            guardian_approval = await self._verify_guardian_signature(guardian_id, approval_data)
+            if not guardian_approval["valid"]:
+                return {"success": False, "error": "Invalid guardian signature"}
+            
+            # Record guardian approval
+            await self._record_guardian_approval(recovery_id, guardian_id, guardian_approval)
+            
+            # Check if threshold is met
+            current_approvals = await self._get_recovery_approvals(recovery_id)
+            
+            if len(current_approvals) >= recovery_session["threshold"]:
+                # Complete recovery
+                return await self._complete_social_recovery(recovery_id, current_approvals)
+            else:
+                return {
+                    "success": True,
+                    "recovery_id": recovery_id,
+                    "guardian_approved": True,
+                    "approvals_needed": recovery_session["threshold"] - len(current_approvals),
+                    "status": "awaiting_more_guardians"
+                }
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def _verify_recovery_guardians(self, user_id: str, guardians: List[str]) -> List[str]:
+        """Verify recovery guardians are trusted contacts"""
+        verified_guardians = []
+        
+        for guardian_id in guardians:
+            # Check if guardian is in user's trusted contacts
+            is_trusted = await self._is_trusted_guardian(user_id, guardian_id)
+            if is_trusted:
+                verified_guardians.append(guardian_id)
+        
+        return verified_guardians
+    
+    async def _generate_recovery_shares(self, user: SovereignUser, guardians: List[str], threshold: int) -> Dict[str, str]:
+        """Generate recovery shares using Shamir's Secret Sharing"""
+        # Mock implementation - in production, use actual Shamir's Secret Sharing
+        recovery_secret = user.pqc_keypair["private_key"]  # The secret to recover
+        
+        shares = {}
+        for i, guardian_id in enumerate(guardians):
+            # Generate share for each guardian
+            share = f"share_{i}_{recovery_secret[:8]}_{uuid.uuid4().hex[:16]}"
+            shares[guardian_id] = share
+        
+        return shares
+    
+    async def _store_recovery_session(self, recovery_session: Dict[str, Any]):
+        """Store recovery session"""
+        # Mock implementation - in production, store in secure database
+        pass
+    
+    async def _notify_guardians(self, recovery_session: Dict[str, Any]):
+        """Notify guardians about recovery request"""
+        # Mock implementation - in production, send secure notifications
+        for guardian_id in recovery_session["guardians"]:
+            await self._send_guardian_notification(guardian_id, recovery_session)
+    
+    async def _verify_guardian_signature(self, guardian_id: str, approval_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Verify guardian's biometric signature"""
+        # Mock implementation - in production, verify actual biometric signature
         return {
-            "verified": True,
-            "algorithm": self.kem_algorithm,
-            "key_exchange": "successful"
+            "valid": True,
+            "guardian_id": guardian_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
+    
+    async def _record_guardian_approval(self, recovery_id: str, guardian_id: str, approval: Dict[str, Any]):
+        """Record guardian approval"""
+        # Mock implementation - in production, store in secure database
+        pass
+    
+    async def _get_recovery_approvals(self, recovery_id: str) -> List[Dict[str, Any]]:
+        """Get current recovery approvals"""
+        # Mock implementation - in production, query database
+        return []
+    
+    async def _complete_social_recovery(self, recovery_id: str, approvals: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Complete social recovery process"""
+        try:
+            # Get recovery session
+            recovery_session = await self._get_recovery_session(recovery_id)
+            user_id = recovery_session["user_id"]
+            
+            # Reconstruct private key from shares
+            reconstructed_key = await self._reconstruct_private_key(recovery_session["shares"])
+            
+            # Update user's PQC keypair
+            user = self.sovereign_users.get(user_id)
+            if user:
+                user.pqc_keypair["private_key"] = reconstructed_key
+                user.last_auth = datetime.now(timezone.utc)
+            
+            # Generate new sovereign token
+            new_session_id = str(uuid.uuid4())
+            sovereign_token = await self._generate_sovereign_token(user_id, type(None))  # Mock session
+            
+            # Update recovery session status
+            recovery_session["status"] = "completed"
+            recovery_session["completed_at"] = datetime.now(timezone.utc).isoformat()
+            
+            return {
+                "success": True,
+                "recovery_completed": True,
+                "new_sovereign_token": sovereign_token,
+                "session_id": new_session_id,
+                "recovered_at": recovery_session["completed_at"]
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def _is_trusted_guardian(self, user_id: str, guardian_id: str) -> bool:
+        """Check if guardian is trusted contact"""
+        # Mock implementation - in production, check user's trusted contacts
+        return True
+    
+    async def _get_recovery_session(self, recovery_id: str) -> Optional[Dict[str, Any]]:
+        """Get recovery session"""
+        # Mock implementation - in production, query database
+        return None
+    
+    async def _send_guardian_notification(self, guardian_id: str, recovery_session: Dict[str, Any]):
+        """Send notification to guardian"""
+        # Mock implementation - in production, send secure notification
+        pass
+    
+    async def _reconstruct_private_key(self, shares: Dict[str, str]) -> str:
+        """Reconstruct private key from shares"""
+        # Mock implementation - in production, use actual Shamir's Secret Sharing reconstruction
+        return f"reconstructed_key_{uuid.uuid4().hex}"
 
 # Singleton instance
 sovereign_auth_system = SovereignAuthSystem()
