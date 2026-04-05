@@ -25,6 +25,7 @@ from core import unified_state_manager, UnifiedUserSession, sovereign_auth_syste
 from services.unified import guardian_ai_vault, satellite_transaction_controller, micro_insurance_oracle
 from services.sovereign import sovereign_onboarding_service
 from services.regulatory import tax_oracle
+from services.esg import esg_auditor
 
 # Import existing services
 from services.marketplace.listings import ListingService
@@ -709,6 +710,60 @@ async def legacy_market_analysis(request: Request):
         
     except Exception as e:
         logger.error(f"Error in legacy market analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== ESG AUDITOR ENDPOINTS =====
+
+@app.post("/api/v4/esg/calculate-carbon-neutral-score")
+async def calculate_carbon_neutral_score(request: Request):
+    """Calculate carbon-neutral score for mineral listing"""
+    try:
+        data = await request.json()
+        listing_data = data.get("listing_data", {})
+        
+        result = await esg_auditor.calculate_carbon_neutral_score(listing_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error calculating carbon-neutral score: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v4/esg/certificate/{listing_id}")
+async def get_esg_certificate(listing_id: str):
+    """Get ESG certificate for listing"""
+    try:
+        result = await esg_auditor.get_esg_certificate(listing_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting ESG certificate: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/esg/update-score/{listing_id}")
+async def update_esg_score(listing_id: str, request: Request):
+    """Update ESG score with new data"""
+    try:
+        data = await request.json()
+        update_data = data.get("update_data", {})
+        
+        result = await esg_auditor.update_esg_score(listing_id, update_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error updating ESG score: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v4/esg/summary")
+async def get_esg_summary():
+    """Get ESG summary for all listings"""
+    try:
+        result = await esg_auditor.get_esg_summary()
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting ESG summary: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ===== CONFLICT PREVENTION ENDPOINTS =====

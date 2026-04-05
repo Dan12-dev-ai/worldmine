@@ -1,6 +1,9 @@
 # ESG Services
-# Built-in ESG + Carbon Credit + Social Impact Dashboard with automatic scoring
+# Environmental, Social, and Governance Auditor
 
-from .scoring import ESGScoringService
+from .esg_auditor import ESGAuditor, esg_auditor
 
-__all__ = ["ESGScoringService"]
+__all__ = [
+    "ESGAuditor",
+    "esg_auditor"
+]
