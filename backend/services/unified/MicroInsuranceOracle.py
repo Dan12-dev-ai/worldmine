@@ -588,6 +588,109 @@ class MicroInsuranceOracle:
             
         except Exception as e:
             return {"status": "failed", "error": str(e)}
+    
+    async def calculate_esg_adjusted_premium(self, premium_request: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate insurance premium with ESG adjustments including satellite-verified reforestation"""
+        try:
+            user_id = premium_request["user_id"]
+            mineral_type = premium_request["mineral_type"]
+            coverage_amount = premium_request["coverage_amount"]
+            
+            # Get base premium
+            base_premium_result = await self.calculate_premium(premium_request)
+            base_premium = base_premium_result["premium_amount"]
+            
+            # Get ESG data
+            esg_data = await self._get_user_esg_data(user_id)
+            
+            # Satellite-verified reforestation multiplier (mandatory)
+            reforestation_multiplier = await self._calculate_reforestation_multiplier(esg_data)
+            
+            # Other ESG factors
+            ethical_score_multiplier = esg_data.get("ethical_impact_score", 1.0)
+            sustainability_multiplier = esg_data.get("sustainability_score", 1.0)
+            governance_multiplier = esg_data.get("governance_score", 1.0)
+            
+            # Calculate ESG-adjusted premium
+            combined_esg_multiplier = (
+                reforestation_multiplier *  # Mandatory satellite-verified reforestation
+                ethical_score_multiplier *
+                sustainability_multiplier *
+                governance_multiplier
+            )
+            
+            esg_adjusted_premium = base_premium * combined_esg_multiplier
+            
+            # Generate ESG report
+            esg_report = {
+                "base_premium": base_premium,
+                "esg_adjusted_premium": esg_adjusted_premium,
+                "esg_discount_percentage": ((base_premium - esg_adjusted_premium) / base_premium) * 100,
+                "multipliers": {
+                    "reforestation": reforestation_multiplier,
+                    "ethical_score": ethical_score_multiplier,
+                    "sustainability": sustainability_multiplier,
+                    "governance": governance_multiplier
+                },
+                "satellite_verified": esg_data.get("satellite_verified", False),
+                "reforestation_acres": esg_data.get("reforestation_acres", 0),
+                "tree_count": esg_data.get("tree_count", 0)
+            }
+            
+            return {
+                "success": True,
+                "premium_amount": esg_adjusted_premium,
+                "base_premium": base_premium,
+                "esg_adjustment": esg_report,
+                "currency": "USD",
+                "calculated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    async def _get_user_esg_data(self, user_id: str) -> Dict[str, Any]:
+        """Get user's ESG data including satellite-verified reforestation"""
+        # Mock ESG data - in production, integrate with actual ESG systems
+        return {
+            "ethical_impact_score": 0.85,  # 15% discount
+            "sustainability_score": 0.90,  # 10% discount
+            "governance_score": 0.95,     # 5% discount
+            "satellite_verified": True,
+            "reforestation_acres": 100.5,
+            "tree_count": 50000,
+            "carbon_sequestered_tons": 250.0,
+            "reforestation_survival_rate": 0.85,
+            "last_verification_date": datetime.now(timezone.utc).isoformat()
+        }
+    
+    async def _calculate_reforestation_multiplier(self, esg_data: Dict[str, Any]) -> float:
+        """Calculate satellite-verified reforestation multiplier"""
+        if not esg_data.get("satellite_verified", False):
+            return 1.0  # No discount if not satellite verified
+        
+        reforestation_acres = esg_data.get("reforestation_acres", 0)
+        tree_count = esg_data.get("tree_count", 0)
+        survival_rate = esg_data.get("reforestation_survival_rate", 0.8)
+        
+        # Base reforestation discount: up to 20% based on scale and survival
+        if reforestation_acres >= 1000 and survival_rate >= 0.9:
+            base_discount = 0.20  # 20% discount
+        elif reforestation_acres >= 500 and survival_rate >= 0.85:
+            base_discount = 0.15  # 15% discount
+        elif reforestation_acres >= 100 and survival_rate >= 0.8:
+            base_discount = 0.10  # 10% discount
+        elif reforestation_acres >= 50 and survival_rate >= 0.75:
+            base_discount = 0.05  # 5% discount
+        else:
+            base_discount = 0.0  # No discount
+        
+        # Apply survival rate adjustment
+        survival_adjustment = min(1.0, survival_rate / 0.8)  # Normalize to 80% baseline
+        
+        final_multiplier = 1.0 - (base_discount * survival_adjustment)
+        
+        return max(0.5, final_multiplier)  # Minimum 50% of base premium
 
 # Singleton instance
 micro_insurance_oracle = MicroInsuranceOracle()

@@ -24,6 +24,7 @@ from core import unified_state_manager, UnifiedUserSession, sovereign_auth_syste
 # Import unified services
 from services.unified import guardian_ai_vault, satellite_transaction_controller, micro_insurance_oracle
 from services.sovereign import sovereign_onboarding_service
+from services.regulatory import tax_oracle
 
 # Import existing services
 from services.marketplace.listings import ListingService
@@ -708,6 +709,60 @@ async def legacy_market_analysis(request: Request):
         
     except Exception as e:
         logger.error(f"Error in legacy market analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== REGULATORY AND TAX COMPLIANCE ENDPOINTS =====
+
+@app.post("/api/v4/tax/calculate")
+async def calculate_transaction_taxes(request: Request):
+    """Calculate all applicable taxes for a transaction"""
+    try:
+        data = await request.json()
+        transaction_data = data.get("transaction_data", {})
+        
+        result = await tax_oracle.calculate_transaction_taxes(transaction_data)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error calculating taxes: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v4/tax/rates")
+async def get_tax_rates(jurisdiction: Optional[str] = None, mineral_type: Optional[str] = None):
+    """Get current tax rates"""
+    try:
+        result = await tax_oracle.get_tax_rates(jurisdiction, mineral_type)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting tax rates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v4/tax/rates/update")
+async def update_tax_rate(request: Request):
+    """Update tax rate (admin function)"""
+    try:
+        data = await request.json()
+        rate_update = data.get("rate_update", {})
+        
+        result = await tax_oracle.update_tax_rate(rate_update)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error updating tax rate: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v4/tax/history/{transaction_id}")
+async def get_tax_calculation_history(transaction_id: str):
+    """Get tax calculation history for a transaction"""
+    try:
+        result = await tax_oracle.get_tax_calculation_history(transaction_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting tax history: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ===== AI AGENTS ENDPOINTS =====
