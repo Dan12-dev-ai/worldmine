@@ -3,8 +3,8 @@ services:
   - type: web
     name: dedan-mine-backend
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn app:app --bind 0.0.0.0 --port $PORT
     healthCheckPath: /health
     healthCheckTimeout: 30
     autoDeploy: true
@@ -40,8 +40,8 @@ services:
   - type: web
     name: dedan-mine-payout
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn payout.api:app --bind 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn payout.api:app --bind 0.0.0.0 --port $PORT
     healthCheckPath: /health
     healthCheckTimeout: 30
     autoDeploy: true
@@ -67,8 +67,8 @@ services:
   - type: web
     name: dedan-mine-dashboard
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && streamlit run dashboard/app.py --server.port=$PORT --server.address=0.0.0.0
     healthCheckPath: /_stcore/health
     healthCheckTimeout: 30
     autoDeploy: true
