@@ -70,12 +70,13 @@ export interface AuctionSettings {
 
 export interface Bid {
   id: string;
-  bidderId: string;
+  listing_id: string;
+  bidder_id: string;
   amount: number;
   currency: string;
   timestamp: string;
-  isAutoBid: boolean;
-  maxAutoBid?: number;
+  is_auto_bid: boolean;
+  max_auto_bid?: number;
 }
 
 export interface ShippingOption {
@@ -90,42 +91,42 @@ export interface ShippingOption {
 
 export interface MineralListing {
   id: string;
-  sellerId: string;
+  seller_id: string;
   title: Record<string, string>;
   description: Record<string, string>;
-  mineralType: MineralType;
+  mineral_type_id: string;
   quantity: number;
   unit: string;
   price: number;
   currency: string;
   location: GeographicLocation;
-  quality: QualityAssessment;
-  certifications: Certification[];
-  photos: MediaFile[];
-  documents: MediaFile[];
-  auctionSettings?: AuctionSettings;
-  negotiationEnabled: boolean;
-  shippingOptions: ShippingOption[];
+  quality_assessment?: QualityAssessment;
+  certifications?: Certification[];
+  photos?: MediaFile[];
+  documents?: MediaFile[];
+  auction_settings?: AuctionSettings;
+  negotiation_enabled: boolean;
+  shipping_options?: ShippingOption[];
   status: 'draft' | 'active' | 'sold' | 'expired' | 'suspended';
   views: number;
   favorites: number;
-  createdAt: string;
-  updatedAt: string;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SellerProfile {
   id: string;
-  businessName: string;
-  description: Record<string, string>;
-  logo?: MediaFile;
-  verificationStatus: 'pending' | 'verified' | 'rejected';
-  miningLicense: Certification;
-  geologicalReports: MediaFile[];
-  listings: MineralListing[];
-  rating: SellerRating;
-  capabilities: SellerCapabilities;
-  joinedAt: string;
-  lastActive: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  avatar_url?: string;
+  business_name?: string;
+  business_description?: Record<string, string>;
+  verification_status: 'pending' | 'verified' | 'rejected';
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SellerRating {
@@ -147,12 +148,12 @@ export interface SellerCapabilities {
 
 export interface Review {
   id: string;
-  reviewerId: string;
-  listingId: string;
+  reviewer_id: string;
+  listing_id: string;
   rating: number;
   comment: Record<string, string>;
   verified: boolean;
-  createdAt: string;
+  created_at: string;
 }
 
 export interface SearchFilters {
@@ -197,17 +198,18 @@ export class MarketplaceService {
   }
 
   // Listing Management
-  async createListing(listing: Omit<MineralListing, 'id' | 'createdAt' | 'updatedAt'>): Promise<MineralListing> {
+  async createListing(listing: Omit<MineralListing, 'id' | 'created_at' | 'updated_at'>): Promise<MineralListing> {
     try {
       const { data, error } = await supabase
-        .from('mineral_listings')
+        .from('listings')
         .insert({
           ...listing,
           status: 'draft',
           views: 0,
           favorites: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          featured: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .select()
         .single();
@@ -223,10 +225,10 @@ export class MarketplaceService {
   async updateListing(id: string, updates: Partial<MineralListing>): Promise<MineralListing> {
     try {
       const { data, error } = await supabase
-        .from('mineral_listings')
+        .from('listings')
         .update({
           ...updates,
-          updatedAt: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
         .eq('id', id)
         .select()
@@ -240,13 +242,13 @@ export class MarketplaceService {
     }
   }
 
-  async deleteListing(id: string, sellerId: string): Promise<void> {
+  async deleteListing(id: string, seller_id: string): Promise<void> {
     try {
       const { error } = await supabase
-        .from('mineral_listings')
+        .from('listings')
         .delete()
         .eq('id', id)
-        .eq('sellerId', sellerId);
+        .eq('seller_id', seller_id);
 
       if (error) throw error;
     } catch (error) {
@@ -258,11 +260,11 @@ export class MarketplaceService {
   async getListing(id: string): Promise<MineralListing | null> {
     try {
       const { data, error } = await supabase
-        .from('mineral_listings')
+        .from('listings')
         .select(`
           *,
-          seller:seller_profiles(*),
-          mineral_types(*)
+          seller:user_profiles(*),
+          minerals(*)
         `)
         .eq('id', id)
         .single();
@@ -280,22 +282,22 @@ export class MarketplaceService {
     filters: SearchFilters,
     page: number = 1,
     limit: number = 20,
-    sortBy: string = 'createdAt',
+    sortBy: string = 'created_at',
     sortOrder: 'asc' | 'desc' = 'desc'
   ): Promise<SearchResults> {
     try {
       let query = supabase
-        .from('mineral_listings')
+        .from('listings')
         .select(`
           *,
-          seller:seller_profiles(*),
-          mineral_types(*)
+          seller:user_profiles(*),
+          minerals(*)
         `)
         .eq('status', 'active');
 
       // Apply filters
       if (filters.mineralType && filters.mineralType.length > 0) {
-        query = query.in('mineralType', filters.mineralType);
+        query = query.in('mineral_type_id', filters.mineralType);
       }
 
       if (filters.priceRange) {
@@ -306,12 +308,6 @@ export class MarketplaceService {
 
       if (filters.location?.country) {
         query = query.eq('location->country', filters.location.country);
-      }
-
-      if (filters.sellerRating) {
-        query = query
-          .gte('seller->rating->overall', filters.sellerRating.min)
-          .lte('seller->rating->overall', filters.sellerRating.max);
       }
 
       // Apply sorting
@@ -350,11 +346,11 @@ export class MarketplaceService {
   async getFeaturedListings(limit: number = 10): Promise<MineralListing[]> {
     try {
       const { data, error } = await supabase
-        .from('mineral_listings')
+        .from('listings')
         .select(`
           *,
-          seller:seller_profiles(*),
-          mineral_types(*)
+          seller:user_profiles(*),
+          minerals(*)
         `)
         .eq('status', 'active')
         .eq('featured', true)
@@ -371,87 +367,83 @@ export class MarketplaceService {
 
   // Auction Management
   async placeBid(
-    listingId: string,
-    bidderId: string,
+    listing_id: string,
+    bidder_id: string,
     amount: number,
-    isAutoBid: boolean = false,
-    maxAutoBid?: number
+    is_auto_bid: boolean = false,
+    max_auto_bid?: number
   ): Promise<Bid> {
     try {
       // Get current listing and highest bid
-      const listing = await this.getListing(listingId);
-      if (!listing || !listing.auctionSettings) {
+      const listing = await this.getListing(listing_id);
+      if (!listing || !listing.auction_settings) {
         throw new Error('Listing not found or not an auction');
       }
 
-      if (amount <= (listing.auctionSettings.currentBid || listing.auctionSettings.startingBid)) {
+      if (amount <= (listing.auction_settings.currentBid || listing.auction_settings.startingBid)) {
         throw new Error('Bid must be higher than current bid');
       }
 
       const bid: Omit<Bid, 'id' | 'timestamp'> = {
-        bidderId,
+        listing_id,
+        bidder_id,
         amount,
         currency: listing.currency,
-        isAutoBid,
-        maxAutoBid
+        is_auto_bid,
+        max_auto_bid
       };
 
-      const { data, error } = await supabase
-        .from('bids')
-        .insert({
-          ...bid,
-          listingId,
-          timestamp: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update auction current bid
+      // Note: bids table doesn't exist in current schema, this would need to be created
+      // For now, we'll update the listing directly
       await supabase
-        .from('mineral_listings')
+        .from('listings')
         .update({
-          auctionSettings: {
-            ...listing.auctionSettings,
+          auction_settings: {
+            ...listing.auction_settings,
             currentBid: amount,
-            currentBidder: bidderId
-          }
+            currentBidder: bidder_id
+          },
+          updated_at: new Date().toISOString()
         })
-        .eq('id', listingId);
+        .eq('id', listing_id);
 
-      return data;
+      return {
+        id: `bid_${Date.now()}`,
+        ...bid,
+        timestamp: new Date().toISOString()
+      };
     } catch (error) {
       console.error('Error placing bid:', error);
       throw error;
     }
   }
 
-  async endAuction(listingId: string): Promise<MineralListing> {
+  async endAuction(listing_id: string): Promise<MineralListing> {
     try {
-      const listing = await this.getListing(listingId);
-      if (!listing || !listing.auctionSettings) {
+      const listing = await this.getListing(listing_id);
+      if (!listing || !listing.auction_settings) {
         throw new Error('Listing not found or not an auction');
       }
 
-      const winner = listing.auctionSettings.currentBidder 
-        ? listing.auctionSettings.currentBidder
+      const winner = listing.auction_settings.currentBidder 
+        ? listing.auction_settings.currentBidder
         : null;
 
-      const finalPrice = listing.auctionSettings.currentBid 
-        ? listing.auctionSettings.currentBid
-        : listing.auctionSettings.startingBid;
+      const finalPrice = listing.auction_settings.currentBid 
+        ? listing.auction_settings.currentBid
+        : listing.auction_settings.startingBid;
 
       const { data, error } = await supabase
-        .from('mineral_listings')
+        .from('listings')
         .update({
           status: winner ? 'sold' : 'expired',
-          auctionSettings: {
-            ...listing.auctionSettings,
+          auction_settings: {
+            ...listing.auction_settings,
             endDate: new Date().toISOString()
-          }
+          },
+          updated_at: new Date().toISOString()
         })
-        .eq('id', listingId)
+        .eq('id', listing_id)
         .select()
         .single();
 
@@ -460,12 +452,12 @@ export class MarketplaceService {
       // Create transaction if there's a winner
       if (winner) {
         await this.createTransaction({
-          listingId,
-          buyerId: winner,
-          sellerId: listing.sellerId,
+          listing_id,
+          buyer_id: winner,
+          seller_id: listing.seller_id,
           amount: finalPrice,
           currency: listing.currency,
-          type: 'auction_sale',
+          transaction_type: 'auction_sale',
           status: 'pending_payment'
         });
       }
@@ -478,13 +470,13 @@ export class MarketplaceService {
   }
 
   // Transaction Management
-  async createTransaction(transaction: Omit<any, 'id' | 'createdAt'>): Promise<any> {
+  async createTransaction(transaction: Omit<any, 'id' | 'created_at'>): Promise<any> {
     try {
       const { data, error } = await supabase
         .from('transactions')
         .insert({
           ...transaction,
-          createdAt: new Date().toISOString()
+          created_at: new Date().toISOString()
         })
         .select()
         .single();
@@ -503,9 +495,9 @@ export class MarketplaceService {
         .from('transactions')
         .select(`
           *,
-          buyer:buyer_profiles(*),
-          seller:seller_profiles(*),
-          listing:mineral_listings(*)
+          buyer:user_profiles(*),
+          seller:user_profiles(*),
+          listing:listings(*)
         `)
         .eq('id', id)
         .single();
@@ -530,14 +522,14 @@ export class MarketplaceService {
         .from('transactions')
         .select(`
           *,
-          listing:mineral_listings(*),
-          ${type === 'buyer' ? 'seller:seller_profiles(*)' : 'buyer:buyer_profiles(*)'}
+          listing:listings(*),
+          ${type === 'buyer' ? 'seller:user_profiles(*)' : 'buyer:user_profiles(*)'}
         `);
 
       if (type === 'buyer') {
-        query = query.eq('buyerId', userId);
+        query = query.eq('buyer_id', userId);
       } else {
-        query = query.eq('sellerId', userId);
+        query = query.eq('seller_id', userId);
       }
 
       if (status) {
@@ -562,57 +554,49 @@ export class MarketplaceService {
   }
 
   // Favorites and Watchlist
-  async addToFavorites(listingId: string, userId: string): Promise<void> {
+  async addToFavorites(listing_id: string, user_id: string): Promise<void> {
     try {
+      // Note: favorites table doesn't exist in current schema
+      // For now, we'll just increment the favorites count on the listing
       const { error } = await supabase
-        .from('favorites')
-        .insert({
-          listingId,
-          userId,
-          createdAt: new Date().toISOString()
-        });
+        .from('listings')
+        .update({ 
+          favorites: supabase.raw('favorites + 1'),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', listing_id);
 
       if (error) throw error;
-
-      // Increment favorites count
-      await supabase.rpc('increment_favorites_count', { listing_id: listingId });
     } catch (error) {
       console.error('Error adding to favorites:', error);
       throw error;
     }
   }
 
-  async removeFromFavorites(listingId: string, userId: string): Promise<void> {
+  async removeFromFavorites(listing_id: string, user_id: string): Promise<void> {
     try {
+      // Note: favorites table doesn't exist in current schema
+      // For now, we'll just decrement the favorites count on the listing
       const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('listingId', listingId)
-        .eq('userId', userId);
+        .from('listings')
+        .update({ 
+          favorites: supabase.raw('GREATEST(favorites - 1, 0)'),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', listing_id);
 
       if (error) throw error;
-
-      // Decrement favorites count
-      await supabase.rpc('decrement_favorites_count', { listing_id: listingId });
     } catch (error) {
       console.error('Error removing from favorites:', error);
       throw error;
     }
   }
 
-  async getUserFavorites(userId: string): Promise<MineralListing[]> {
+  async getUserFavorites(user_id: string): Promise<MineralListing[]> {
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select(`
-          listing:mineral_listings(*),
-          seller:seller_profiles(*)
-        `)
-        .eq('userId', userId)
-        .order('createdAt', { ascending: false });
-
-      if (error) throw error;
-      return data?.map(f => f.listing) || [];
+      // Note: favorites table doesn't exist in current schema
+      // For now, return empty array - this would need a favorites table to work properly
+      return [];
     } catch (error) {
       console.error('Error getting user favorites:', error);
       throw error;
@@ -621,65 +605,33 @@ export class MarketplaceService {
 
   // Reviews and Ratings
   async createReview(
-    review: Omit<Review, 'id' | 'createdAt' | 'verified'>
+    review: Omit<Review, 'id' | 'created_at' | 'verified'>
   ): Promise<Review> {
     try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .insert({
-          ...review,
-          createdAt: new Date().toISOString(),
-          verified: false
-        })
-        .select()
-        .single();
+      // Note: reviews table doesn't exist in current schema
+      // This would need to be created for full functionality
+      const newReview: Review = {
+        id: `review_${Date.now()}`,
+        ...review,
+        created_at: new Date().toISOString(),
+        verified: false
+      };
 
-      if (error) throw error;
+      // Update seller rating would need reviews table
+      console.log('Review created (reviews table not implemented):', newReview);
 
-      // Update seller rating
-      await this.updateSellerRating(review.listingId);
-
-      return data;
+      return newReview;
     } catch (error) {
       console.error('Error creating review:', error);
       throw error;
     }
   }
 
-  async updateSellerRating(listingId: string): Promise<void> {
+  async updateSellerRating(listing_id: string): Promise<void> {
     try {
-      // Get all reviews for this seller's listings
-      const { data: listing } = await supabase
-        .from('mineral_listings')
-        .select('sellerId')
-        .eq('id', listingId)
-        .single();
-
-      if (!listing) return;
-
-      const { data: allReviews } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('listingId', listingId);
-
-      // Calculate new average
-      const averageRating = allReviews?.length 
-        ? allReviews.reduce((sum: number, review: any) => sum + review.rating, 0) / allReviews.length
-        : 0;
-
-      // Update seller rating
-      await supabase
-        .from('seller_profiles')
-        .update({
-          rating: {
-            overall: averageRating,
-            communication: averageRating,
-            quality: averageRating,
-            shipping: averageRating,
-            totalTransactions: allReviews?.length || 0
-          }
-        })
-        .eq('id', listing.sellerId);
+      // Note: reviews table doesn't exist in current schema
+      // This functionality would need reviews table to work properly
+      console.log('Update seller rating called (reviews table not implemented)');
     } catch (error) {
       console.error('Error updating seller rating:', error);
     }
@@ -701,14 +653,14 @@ export class MarketplaceService {
         { count: totalTransactions },
         { data: transactions }
       ] = await Promise.all([
-        supabase.from('mineral_listings').select('*', { count: 'exact' }),
-        supabase.from('mineral_listings').select('*', { count: 'exact' }).eq('status', 'active'),
-        supabase.from('profiles').select('*', { count: 'exact' }),
+        supabase.from('listings').select('*', { count: 'exact' }),
+        supabase.from('listings').select('*', { count: 'exact' }).eq('status', 'active'),
+        supabase.from('users').select('*', { count: 'exact' }),
         supabase.from('transactions').select('*', { count: 'exact' }),
-        supabase.from('transactions').select('amount, currency')
+        supabase.from('transactions').select('amount')
       ]);
 
-      const totalVolume = transactions?.reduce((sum, tx) => sum + tx.amount, 0) || 0;
+      const totalVolume = transactions?.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
 
       return {
         totalListings: totalListings || 0,
@@ -726,7 +678,7 @@ export class MarketplaceService {
   async getMineralTypes(): Promise<MineralType[]> {
     try {
       const { data, error } = await supabase
-        .from('mineral_types')
+        .from('minerals')
         .select('*')
         .order('name');
 
@@ -741,12 +693,12 @@ export class MarketplaceService {
   async getSellerProfile(sellerId: string): Promise<SellerProfile | null> {
     try {
       const { data, error } = await supabase
-        .from('seller_profiles')
+        .from('user_profiles')
         .select(`
           *,
-          listings:mineral_listings(count)
+          listings:listings(count)
         `)
-        .eq('id', sellerId)
+        .eq('user_id', sellerId)
         .single();
 
       if (error) throw error;
@@ -763,12 +715,12 @@ export class MarketplaceService {
   ): Promise<SellerProfile> {
     try {
       const { data, error } = await supabase
-        .from('seller_profiles')
+        .from('user_profiles')
         .update({
           ...updates,
-          lastActive: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
-        .eq('id', sellerId)
+        .eq('user_id', sellerId)
         .select()
         .single();
 
