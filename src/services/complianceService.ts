@@ -489,23 +489,24 @@ export class ComplianceService {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
+          verification_status: 'anonymized',
           full_name: 'Anonymous User',
-          email: `anonymous-${Date.now()}@worldmine.com`,
+          email: `deleted-${userId}@worldmine.com`,
           phone: null,
           avatar_url: null,
           business_name: null,
           business_description: null
         })
-        .eq('id', userId);
+        .eq('user_id', userId);
 
       if (!profileError) anonymizedCount++;
 
       // Anonymize transactions
       const { data: transactions, error: txError } = await supabase
         .from('transactions')
-        .update({ buyerId: null, sellerId: null })
-        .eq('buyerId', userId)
-        .or('sellerId', userId);
+        .update({ buyer_id: null, seller_id: null })
+        .eq('buyer_id', userId)
+        .or('seller_id', userId);
 
       if (!txError) anonymizedCount++;
 
