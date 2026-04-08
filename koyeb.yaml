@@ -1,0 +1,42 @@
+name: dedan-mine
+services:
+  - name: api
+    source_dir: /backend
+    github:
+      repo: yourusername/dedan-mine
+      branch: main
+    build_command: pip install -r requirements.txt
+    run_command: uvicorn main:app --host 0.0.0.0 --port 8000
+    instance_type: nano
+    regions:
+      - was
+    ports:
+      - port: 8000
+        protocol: http
+    env:
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+      - key: REDIS_URL
+        value: ${REDIS_URL}
+      - key: NODE_ENV
+        value: production
+      - key: STRIPE_SECRET_KEY
+        value: ${STRIPE_SECRET_KEY}
+      - key: STRIPE_WEBHOOK_SECRET
+        value: ${STRIPE_WEBHOOK_SECRET}
+      - key: CHAPA_API_KEY
+        value: ${CHAPA_API_KEY}
+      - key: GROQ_API_KEY
+        value: ${GROQ_API_KEY}
+      - key: GEMINI_API_KEY
+        value: ${GEMINI_API_KEY}
+      - key: SENTRY_DSN
+        value: ${SENTRY_DSN}
+      - key: RESEND_API_KEY
+        value: ${RESEND_API_KEY}
+    health_check:
+      path: /health
+      port: 8000
+      interval: 30
+      timeout: 10
+      retries: 3

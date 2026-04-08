@@ -40,6 +40,16 @@ from services.security.quantumEncryption import QuantumSecureData
 from main_simple import SimpleMarketNewsAgent
 from main import MarketNewsAgent, StateGraph
 
+# Import production health monitoring
+from production_health import (
+    health_check_api, 
+    health_summary_api, 
+    readiness_check_api, 
+    liveness_check_api,
+    startup_health_monitor,
+    shutdown_health_monitor
+)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -50,7 +60,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
-    logger.info("🚀 DEDAN Mine Unified Architecture starting up...")
+    logger.info("?? DEDAN Mine Unified Architecture starting up...")
+    
+    # Initialize health monitoring
+    await startup_health_monitor()
     
     # Initialize services
     listing_service = ListingService()
@@ -68,7 +81,9 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    logger.info("🛑 DEDAN Mine Unified Architecture shutting down...")
+    # Cleanup health monitoring
+    await shutdown_health_monitor()
+    logger.info("?? DEDAN Mine Unified Architecture shutting down...")
 
 # Create FastAPI application
 app = FastAPI(
@@ -1098,6 +1113,27 @@ async def anti_smuggling_check(request: Request):
     except Exception as e:
         logger.error(f"Error in anti-smuggling check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Production Health Endpoints
+@app.get("/api/health")
+async def health_check(request: Request, detailed: bool = False):
+    """Production health check endpoint"""
+    return await health_check_api(detailed=detailed)
+
+@app.get("/api/health/summary")
+async def health_summary(request: Request):
+    """Lightweight health summary for monitoring"""
+    return await health_summary_api()
+
+@app.get("/api/health/ready")
+async def readiness_check(request: Request):
+    """Readiness check for Kubernetes/container orchestration"""
+    return await readiness_check_api()
+
+@app.get("/api/health/live")
+async def liveness_check(request: Request):
+    """Liveness check for Kubernetes/container orchestration"""
+    return await liveness_check_api()
 
 # Error handlers
 @app.exception_handler(404)

@@ -18,6 +18,12 @@ opencv-python
 pillow
 websockets
 python-multipart
+
+# Production health monitoring dependencies
+asyncpg
+aioredis
+aiohttp
+sentry-sdk[fastapi]
 aiofiles
 cryptography
 pyjwt
