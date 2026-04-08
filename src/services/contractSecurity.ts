@@ -1,4 +1,21 @@
-import { createHash } from 'crypto';
+// Browser-compatible crypto implementation using Web Crypto API
+const createHash = (algorithm: string) => {
+  const encoder = new TextEncoder();
+  
+  return {
+    update: (data: string) => {
+      const encodedData = encoder.encode(data);
+      return {
+        digest: async () => {
+          const buffer = await crypto.subtle.digest(algorithm.toUpperCase(), encodedData);
+          const hashArray = Array.from(new Uint8Array(buffer));
+          const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          return hashHex;
+        }
+      };
+    }
+  };
+};
 
 export interface ContractData {
   id: string;
@@ -23,7 +40,7 @@ export interface ContractHash {
 }
 
 export class ContractSecurityService {
-  generateContractHash(contractData: Omit<ContractData, 'id' | 'createdAt'>): string {
+  async generateContractHash(contractData: Omit<ContractData, 'id' | 'createdAt'>): Promise<string> {
     const hashData = {
       title: contractData.title,
       content: contractData.content,
@@ -33,14 +50,14 @@ export class ContractSecurityService {
     };
 
     const dataString = JSON.stringify(hashData, Object.keys(hashData).sort());
-    return createHash('sha256').update(dataString).digest('hex');
+    return await createHash('sha256').update(dataString).digest();
   }
 
-  verifyContractIntegrity(
+  async verifyContractIntegrity(
     contractData: ContractData, 
     storedHash: ContractHash
-  ): { isValid: boolean; tamperAlert?: string } {
-    const currentHash = this.generateContractHash(contractData);
+  ): Promise<{ isValid: boolean; tamperAlert?: string }> {
+    const currentHash = await this.generateContractHash(contractData);
     
     if (currentHash !== storedHash.contentHash) {
       return {
@@ -54,7 +71,7 @@ export class ContractSecurityService {
         ...contractData,
         content: contractData.translatedContent
       };
-      const currentTranslatedHash = this.generateContractHash(translatedData);
+      const currentTranslatedHash = await this.generateContractHash(translatedData);
       
       if (currentTranslatedHash !== storedHash.translatedHash) {
         return {
@@ -67,8 +84,8 @@ export class ContractSecurityService {
     return { isValid: true };
   }
 
-  createContractHashRecord(contractData: ContractData): ContractHash {
-    const contentHash = this.generateContractHash(contractData);
+  async createContractHashRecord(contractData: ContractData): Promise<ContractHash> {
+    const contentHash = await this.generateContractHash(contractData);
     let translatedHash: string | undefined;
 
     if (contractData.translatedContent) {
@@ -76,7 +93,7 @@ export class ContractSecurityService {
         ...contractData,
         content: contractData.translatedContent
       };
-      translatedHash = this.generateContractHash(translatedData);
+      translatedHash = await this.generateContractHash(translatedData);
     }
 
     return {
