@@ -20,6 +20,7 @@
     "@radix-ui/react-tabs": "^1.0.4",
     "@supabase/supabase-js": "^2.38.0",
     "@types/node": "^20.0.0",
+    "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",
@@ -44,12 +45,12 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.27",
+    "rollup-plugin-visualizer": "^5.9.2",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vite-plugin-compression2": "^0.11.0",
-    "vite-plugin-pwa": "^0.17.4",
-    "rollup-plugin-visualizer": "^5.9.2"
+    "vite-plugin-pwa": "^0.17.4"
   },
   "pwa": {
     "name": "Worldmine - Global Marketplace",

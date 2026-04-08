@@ -14,6 +14,7 @@ import { useMarketplaceStore } from './store/marketplaceStore'
 import { Mic } from 'lucide-react'
 import { Button } from './components/ui/button'
 import ErrorBoundary from './components/ErrorBoundary'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 
 const App: React.FC = () => {
   const [isListening, setIsListening] = useState(false)
@@ -32,6 +33,9 @@ const App: React.FC = () => {
     <ErrorBoundary>
       {/* KeepAlive Component - Prevents Render from sleeping */}
       <KeepAlive />
+      
+      {/* Vercel Speed Insights - Track performance metrics */}
+      <SpeedInsights />
       
       <div className="min-h-screen bg-cyber-dark relative overflow-hidden">
         {/* Background Particles */}
