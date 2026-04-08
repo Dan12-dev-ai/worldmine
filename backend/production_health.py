@@ -18,6 +18,9 @@ import aiohttp
 import asyncpg  # For Neon PostgreSQL
 import aioredis  # For Upstash Redis
 
+# Import safe changelog reader
+from utils.changelog_reader import get_version
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -63,7 +66,7 @@ class ProductionHealthMonitor:
     
     def __init__(self):
         self.start_time = datetime.now(timezone.utc)
-        self.version = "v5.0.0"
+        self.version = get_version()  # Safely get version from changelog
         self.environment = os.getenv("NODE_ENV", "production")
         
         # Connection pools for performance
