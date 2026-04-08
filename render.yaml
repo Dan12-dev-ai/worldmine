@@ -1,0 +1,198 @@
+services:
+  # Main Backend API
+  - type: web
+    name: dedan-mine-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    healthCheckTimeout: 30
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}
+      - key: REDIS_URL
+        value: ${REDIS_URL}
+      - key: CHAPA_PUBLIC_KEY
+        value: ${CHAPA_PUBLIC_KEY}
+      - key: CHAPA_SECRET_KEY
+        value: ${CHAPA_SECRET_KEY}
+      - key: PAYONEER_CLIENT_ID
+        value: ${PAYONEER_CLIENT_ID}
+      - key: PAYONEER_CLIENT_SECRET
+        value: ${PAYONEER_CLIENT_SECRET}
+      - key: GROQ_API_KEY
+        value: ${GROQ_API_KEY}
+      - key: BINANCE_API_KEY
+        value: ${BINANCE_API_KEY}
+      - key: BINANCE_SECRET_KEY
+        value: ${BINANCE_SECRET_KEY}
+      - key: SECRET_KEY
+        value: ${SECRET_KEY}
+      - key: ENCRYPTION_KEY
+        value: ${ENCRYPTION_KEY}
+
+  # Payout Orchestrator
+  - type: web
+    name: dedan-mine-payout
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn payout.api:app --bind 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    healthCheckTimeout: 30
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: NODE_ENV
+        value: production
+      - key: CHAPA_PUBLIC_KEY
+        value: ${CHAPA_PUBLIC_KEY}
+      - key: CHAPA_SECRET_KEY
+        value: ${CHAPA_SECRET_KEY}
+      - key: PAYONEER_CLIENT_ID
+        value: ${PAYONEER_CLIENT_ID}
+      - key: PAYONEER_CLIENT_SECRET
+        value: ${PAYONEER_CLIENT_SECRET}
+      - key: SECRET_KEY
+        value: ${SECRET_KEY}
+      - key: ENCRYPTION_KEY
+        value: ${ENCRYPTION_KEY}
+
+  # Mobile Dashboard
+  - type: web
+    name: dedan-mine-dashboard
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port=$PORT --server.address=0.0.0.0
+    healthCheckPath: /_stcore/health
+    healthCheckTimeout: 30
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: NODE_ENV
+        value: production
+      - key: STREAMLIT_SERVER_PORT
+        value: $PORT
+      - key: STREAMLIT_SERVER_ADDRESS
+        value: 0.0.0.0
+
+  # Frontend
+  - type: web
+    name: dedan-mine-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: serve -s build -l $PORT
+    healthCheckPath: /
+    healthCheckTimeout: 30
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: NODE_ENV
+        value: production
+      - key: REACT_APP_API_URL
+        value: ${REACT_APP_API_URL}
+      - key: REACT_APP_PAYOUT_URL
+        value: ${REACT_APP_PAYOUT_URL}
+      - key: REACT_APP_DASHBOARD_URL
+        value: ${REACT_APP_DASHBOARD_URL}
+
+version: "1.0.0"
+
+# Render Configuration with Cloudflare Zero Trust Headers
+httpHeaders:
+  - name: X-Frame-Options
+    value: DENY
+  - name: X-Content-Type-Options
+    value: nosniff
+  - name: Referrer-Policy
+    value: strict-origin-when-cross-origin
+  - name: X-XSS-Protection
+    value: "1; mode=block"
+  - name: Strict-Transport-Security
+    value: "max-age=31536000; includeSubDomains"
+  - name: Content-Security-Policy
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://render.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';"
+  - name: Cloudflare-IP-Country
+    value: ET
+  - name: X-NBE-Compliance
+    value: v1.0
+  - name: X-Quantum-Security
+    value: CRYSTALS-Kyber-1024
+
+# Service Dependencies
+databases:
+  - name: dedan-mine-db
+    databaseName: dedan_mine
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+# Environment Groups
+environmentGroups:
+  - name: production
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: NODE_VERSION
+        value: 18
+
+# Build Configuration
+build:
+  - type: python
+    version: 3.11
+  - type: node
+    version: 18
+
+# Scaling Configuration
+scaling:
+  - type: web
+    name: dedan-mine-backend
+    autoDeploy: true
+    plan: starter
+  - type: web
+    name: dedan-mine-payout
+    autoDeploy: true
+    plan: starter
+  - type: web
+    name: dedan-mine-dashboard
+    autoDeploy: true
+    plan: starter
+  - type: web
+    name: dedan-mine-frontend
+    autoDeploy: true
+    plan: starter
+
+# Health Checks
+healthChecks:
+  - type: web
+    name: dedan-mine-backend
+    path: /health
+    interval: 30
+    timeout: 10
+    gracePeriod: 5
+  - type: web
+    name: dedan-mine-payout
+    path: /health
+    interval: 30
+    timeout: 10
+    gracePeriod: 5
+  - type: web
+    name: dedan-mine-dashboard
+    path: /_stcore/health
+    interval: 30
+    timeout: 10
+    gracePeriod: 5
+  - type: web
+    name: dedan-mine-frontend
+    path: /
+    interval: 30
+    timeout: 10
+    gracePeriod: 5
