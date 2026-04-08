@@ -1,85 +1,48 @@
 {
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
   "navbar": {
     "marketplace": "Marketplace",
     "contracts": "Contracts",
     "profile": "Profile",
     "settings": "Settings",
-    "language": "Language"
+    "search": "AI auto-suggest search..."
   },
   "marketplace": {
-    "title": "Global Mining Marketplace",
-    "subtitle": "Trade commodities with secure smart contracts",
-    "search": "Search commodities...",
-    "category": "Category",
-    "price": "Price",
-    "quantity": "Quantity",
-    "seller": "Seller",
-    "viewDetails": "View Details",
-    "pricePerTon": "Per Metric Ton",
-    "fobTerms": "FOB Terms",
-    "verifiedSeller": "Verified Seller",
-    "readyToShip": "Ready to Ship",
     "buyNow": "Buy Now",
     "makeOffer": "Make Offer",
     "liveVideoDiscussion": "Live Video Discussion",
-    "arPreview": "AR Material Preview"
+    "arPreview": "AR Material Preview",
+    "search": "Search materials...",
+    "pricePerTon": "Price per Ton",
+    "fobTerms": "FOB Terms",
+    "verifiedSeller": "Verified Seller",
+    "readyToShip": "Ready to Ship"
   },
   "contracts": {
-    "title": "Smart Contracts",
-    "create": "Create Contract",
-    "view": "View Contract",
-    "sign": "Sign Contract",
-    "dualLanguage": "Dual Language View",
+    "title": "Smart Contract",
+    "dualLanguage": "Dual-Language View",
+    "singleView": "Single View",
     "original": "Original",
     "translated": "Translated",
-    "tamperAlert": "⚠️ Tamper Attempt Detected",
-    "hashMismatch": "Contract hash mismatch! The document has been modified."
-  },
-  "auth": {
-    "signIn": "Sign In",
-    "signUp": "Sign Up",
-    "signOut": "Sign Out",
-    "biometric": "Use Biometric Authentication",
-    "passkey": "Sign in with Passkey",
-    "twoFactor": "Two-Factor Authentication Required"
-  },
-  "security": {
-    "fraudDetection": "Fraud Detection",
-    "anomalyDetected": "Anomaly Detected",
-    "newLocation": "New login location detected",
-    "verifyIdentity": "Please verify your identity"
-  },
-  "categories": {
-    "gold": "Gold",
-    "silver": "Silver", 
-    "copper": "Copper",
-    "platinum": "Platinum",
-    "diamonds": "Diamonds",
-    "rare_earth": "Rare Earth Metals"
-  },
-  "news": {
-    "all": "All News",
-    "economic": "Economic",
-    "supply": "Supply Chain",
-    "mini": "Daily Mini",
-    "breaking": "Breaking",
-    "noNews": "No market news available",
-    "priceUp": "Price Up",
-    "priceDown": "Price Down",
-    "priceStable": "Price Stable",
-    "highPriority": "High Priority",
-    "marketAnalysis": "Market Analysis",
-    "source": "Source"
-  },
-  "common": {
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "save": "Save",
-    "edit": "Edit",
-    "delete": "Delete",
-    "close": "Close"
+    "sign": "Digital Signature",
+    "signInstructions": "Please review both language versions of the contract before signing.",
+    "agreementText": "I hereby agree that both the original and translated versions of this contract are semantically identical and binding.",
+    "digitalSignature": "Full Legal Name",
+    "signaturePlaceholder": "Type your name to sign",
+    "signContract": "Sign Contract",
+    "signing": "Securing Signature...",
+    "alreadySigned": "Signed",
+    "fullySigned": "Fully Signed",
+    "contractActive": "This contract is now legally active and secured by SHA-256 hashing.",
+    "signatures": "Signatures",
+    "signedIn": "Signed in",
+    "tamperAlert": "SECURITY ALERT: Contract Integrity Violated",
+    "translationError": "AI translation failed. Please try again.",
+    "translationPending": "AI is performing legal-aware translation..."
   }
 }

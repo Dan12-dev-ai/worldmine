@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from './components/Navbar'
+import GlobalNavbar from './components/GlobalNavbar'
 import LeftSidebar from './components/LeftSidebar'
 import MainContent from './components/MainContent'
 import RightSidebar from './components/RightSidebar'
@@ -40,7 +40,7 @@ const App: React.FC = () => {
         {/* Main Layout */}
         <div className="relative z-10 flex flex-col h-screen">
           {/* Top Navigation */}
-          <Navbar />
+          <GlobalNavbar />
 
           {/* Main Content Area */}
           <div className="flex flex-1 overflow-hidden relative">

@@ -27,9 +27,40 @@ import {
   Scale
 } from 'lucide-react'
 
+import { DualLanguageContract } from './DualLanguageContract'
+import { BilingualContractSigning } from './BilingualContractSigning'
+import { ContractData } from '../services/contractSecurity'
+
 const MainContent: React.FC = () => {
   const { activeTab, setActiveTab, isLoading, transactions, pendingCommission, walletBalance, withdrawCommission } = useMarketplaceStore()
   const [showWithdrawSuccess, setShowWithdrawSuccess] = React.useState(false)
+  const [activeContract, setActiveContract] = React.useState<ContractData>({
+    id: 'contract_123456789',
+    title: 'Copper Supply Agreement - Q2 2026',
+    content: `COMMODITY SUPPLY AGREEMENT
+
+1. PARTIES
+This Agreement is entered into between Zambia Copper Mines ("Seller") and Global Logistics Ltd ("Buyer").
+
+2. QUANTITY AND QUALITY
+The Seller agrees to supply 5,000 Metric Tons of Copper Cathodes (Grade A) with a minimum purity of 99.99%.
+
+3. PRICE AND PAYMENT
+The price shall be fixed at $8,400 per Metric Ton. Payment shall be secured via DEDAN Multi-Sig Escrow.
+
+4. DELIVERY
+Delivery shall be completed on or before June 30, 2026, FOB Port of Durban.
+
+5. GOVERNING LAW
+This Agreement shall be governed by the laws of International Commodity Trade.`,
+    originalLanguage: 'en',
+    parties: {
+      buyer: 'Global Logistics Ltd',
+      seller: 'Zambia Copper Mines'
+    },
+    createdAt: new Date().toISOString(),
+    version: 1
+  })
 
   const handleWithdraw = () => {
     if (pendingCommission > 0) {
@@ -49,6 +80,34 @@ const MainContent: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'contracts':
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-5xl mx-auto pb-24">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold text-white font-orbitron tracking-tight">AI-Secured Contracts</h2>
+                <p className="text-gray-400 text-sm mt-1">Legally binding, multi-language agreements secured by SHA-256</p>
+              </div>
+              <div className="flex items-center space-x-2 bg-neon-gold/10 border border-neon-gold/30 rounded-full px-4 py-1.5">
+                <ShieldCheck className="w-4 h-4 text-neon-gold" />
+                <span className="text-[10px] text-neon-gold font-bold uppercase tracking-widest">Notary Active</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+              <DualLanguageContract 
+                contract={activeContract} 
+                onContractUpdate={(updated) => setActiveContract(updated)}
+              />
+              
+              <BilingualContractSigning 
+                contract={activeContract}
+                currentUserRole="buyer"
+                onSign={(signatures) => console.log('Contract Signed:', signatures)}
+              />
+            </div>
+          </div>
+        )
       case 'News':
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

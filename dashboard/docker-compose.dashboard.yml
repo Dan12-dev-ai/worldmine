@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  uota-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: uota-elite-dashboard
+    restart: always
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - uota-network
+
+networks:
+  uota-network:
+    driver: bridge

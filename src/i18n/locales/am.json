@@ -1,63 +1,48 @@
 {
+  "common": {
+    "loading": "በመጫን ላይ...",
+    "error": "ስህተት ተከስቷል",
+    "save": "አስቀምጥ",
+    "cancel": "ሰርዝ"
+  },
   "navbar": {
     "marketplace": "ገበያ",
-    "contracts": "ስምሪቶች",
+    "contracts": "ውሎች",
     "profile": "መገለጫ",
     "settings": "ቅንብሮች",
-    "language": "ቋንቋ"
+    "search": "በአርቴፊሻል ኢንተለጀንስ የታገዘ ፍለጋ..."
   },
   "marketplace": {
-    "title": "ዓለማዊ የአለም የማዕድን ገበያ",
-    "subtitle": "ከደህና የእውነታ ስምሪቶች ጋር ዕቃዎችን ይውዱ",
-    "search": "ዕቃዎችን ይፈልጉ...",
-    "category": "ምድብ",
-    "price": "ዋጋ",
-    "quantity": "መጠን",
-    "seller": "ሻጭ",
-    "viewDetails": "ዝርዝሮችን ይመልከቱ"
+    "buyNow": "አሁን ግዛ",
+    "makeOffer": "ዋጋ አቅርብ",
+    "liveVideoDiscussion": "የቀጥታ ቪዲዮ ውይይት",
+    "arPreview": "AR የቁሳቁስ ቅдመ-እይታ",
+    "search": "ቁሳቁሶችን ፈልግ...",
+    "pricePerTon": "የአንድ ቶን ዋጋ",
+    "fobTerms": "FOB ውሎች",
+    "verifiedSeller": "የተረጋገጠ ሻጭ",
+    "readyToShip": "ለጭነት ዝግጁ"
   },
   "contracts": {
-    "title": "የእውነታ ስምሪቶች",
-    "create": "ስምሪት ይፍጠሩ",
-    "view": "ስምሪት ይመልከቱ",
-    "sign": "ስምሪት ይፈርሙ",
-    "dualLanguage": "የሁለት ቋንቋ እይታ",
+    "title": "ስማርት ውል",
+    "dualLanguage": "ባለሁለት ቋንቋ እይታ",
+    "singleView": "ነጠላ እይታ",
     "original": "ኦሪጅናል",
     "translated": "የተተረጎመ",
-    "tamperAlert": "⚠️ የማጥፋት ሙከራ ተለመደ",
-    "hashMismatch": "የሃሽ ልክ አይደለም! ሰነዱ ተለውጧል።"
-  },
-  "auth": {
-    "signIn": "ይግቡ",
-    "signUp": "ይመዝገቡ",
-    "signOut": "ይውጡ",
-    "biometric": "የባዮሜትሪክ ማረጋገጫ ይጠቀሙ",
-    "passkey": "በቁልፍ ይግቡ",
-    "twoFactor": "የሁለት ደረጃ ማረጋገጫ ያስፈልጋል"
-  },
-  "security": {
-    "fraudDetection": "የሙሽራው ማስረጃ",
-    "anomalyDetected": "ያልተለመደ ነገር ተለመደ",
-    "newLocation": "አዲስ የመግቢያ ቦታ ተለመደ",
-    "verifyIdentity": "እባክዎን ተቈጥሮን ያረጋግጡ"
-  },
-  "categories": {
-    "gold": "ወርቅ",
-    "silver": "ብር",
-    "copper": "ነጭ ሳህዲ",
-    "platinum": "ፕላቲንም",
-    "diamonds": "አልማዝ",
-    "rare_earth": "የማህጠረት ጠጣሮ ዋልዶች"
-  },
-  "common": {
-    "loading": "በመጠን...",
-    "error": "ስህተት",
-    "success": "ውና",
-    "cancel": "ይሰርዙ",
-    "confirm": "ያረጋግጡ",
-    "save": "ያስቀምጡ",
-    "edit": "ያርትዑ",
-    "delete": "ይሰርዙ",
-    "close": "ይዝጉ"
+    "sign": "ዲጂታል ፊርማ",
+    "signInstructions": "እባክዎን ከመፈረምዎ በፊት ሁለቱንም የውሉ ስሪቶች ይገምግሙ።",
+    "agreementText": "ኦሪጅናል እና የተተረጎመው የዚህ ውል ስሪቶች ትርጉማቸው ተመሳሳይ እና አስገዳጅ መሆናቸውን በዚህ እስማማለሁ።",
+    "digitalSignature": "ሙሉ ህጋዊ ስም",
+    "signaturePlaceholder": "ለመፈረም ስምዎን ይተይቡ",
+    "signContract": "ውል ፈርም",
+    "signing": "ፊርማን በማረጋገጥ ላይ...",
+    "alreadySigned": "ተፈርሟል",
+    "fullySigned": "ሙሉ በሙሉ ተፈርሟል",
+    "contractActive": "ይህ ውል አሁን በህጋዊ መንገድ ንቁ ነው እና በ SHA-256 ሃሽንግ ተጠብቋል።",
+    "signatures": "ፊርማዎች",
+    "signedIn": "የተፈረመበት ቋንቋ",
+    "tamperAlert": "የደህንነት ማስጠንቀቂያ፡ የውል ታማኝነት ተጥሷል",
+    "translationError": "የ AI ትርጉም አልተሳካም። እባክዎ እንደገና ይሞክሩ።",
+    "translationPending": "AI ህጋዊ ትርጉም በማከናወን ላይ ነው..."
   }
 }

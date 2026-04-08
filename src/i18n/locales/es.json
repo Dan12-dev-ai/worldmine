@@ -1,63 +1,48 @@
 {
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
   "navbar": {
     "marketplace": "Mercado",
     "contracts": "Contratos",
     "profile": "Perfil",
     "settings": "Configuración",
-    "language": "Idioma"
+    "search": "Búsqueda sugerida por IA..."
   },
   "marketplace": {
-    "title": "Mercado Global de Minería",
-    "subtitle": "Comercialice commodities con contratos inteligentes seguros",
-    "search": "Buscar commodities...",
-    "category": "Categoría",
-    "price": "Precio",
-    "quantity": "Cantidad",
-    "seller": "Vendedor",
-    "viewDetails": "Ver Detalles"
+    "buyNow": "Comprar Ahora",
+    "makeOffer": "Hacer Oferta",
+    "liveVideoDiscussion": "Discusión de Video en Vivo",
+    "arPreview": "Vista Previa AR",
+    "search": "Buscar materiales...",
+    "pricePerTon": "Precio por Tonelada",
+    "fobTerms": "Términos FOB",
+    "verifiedSeller": "Vendedor Verificado",
+    "readyToShip": "Listo para Enviar"
   },
   "contracts": {
-    "title": "Contratos Inteligentes",
-    "create": "Crear Contrato",
-    "view": "Ver Contrato",
-    "sign": "Firmar Contrato",
-    "dualLanguage": "Vista Bilingüe",
+    "title": "Contrato Inteligente",
+    "dualLanguage": "Vista de Doble Idioma",
+    "singleView": "Vista Única",
     "original": "Original",
     "translated": "Traducido",
-    "tamperAlert": "⚠️ Intento de Manipulación Detectado",
-    "hashMismatch": "¡Discrepancia de hash! El documento ha sido modificado."
-  },
-  "auth": {
-    "signIn": "Iniciar Sesión",
-    "signUp": "Registrarse",
-    "signOut": "Cerrar Sesión",
-    "biometric": "Usar Autenticación Biométrica",
-    "passkey": "Iniciar con Llave de Acceso",
-    "twoFactor": "Autenticación de Dos Factores Requerida"
-  },
-  "security": {
-    "fraudDetection": "Detección de Fraude",
-    "anomalyDetected": "Anomalía Detectada",
-    "newLocation": "Nuevo inicio de sesión detectado",
-    "verifyIdentity": "Por favor verifique su identidad"
-  },
-  "categories": {
-    "gold": "Oro",
-    "silver": "Plata",
-    "copper": "Cobre",
-    "platinum": "Platino",
-    "diamonds": "Diamantes",
-    "rare_earth": "Metales de Tierras Raras"
-  },
-  "common": {
-    "loading": "Cargando...",
-    "error": "Error",
-    "success": "Éxito",
-    "cancel": "Cancelar",
-    "confirm": "Confirmar",
-    "save": "Guardar",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "close": "Cerrar"
+    "sign": "Firma Digital",
+    "signInstructions": "Revise ambas versiones del contrato antes de firmar.",
+    "agreementText": "Por la presente acepto que tanto la versión original como la traducida de este contrato son semánticamente idénticas y vinculantes.",
+    "digitalSignature": "Nombre Legal Completo",
+    "signaturePlaceholder": "Escriba su nombre para firmar",
+    "signContract": "Firmar Contrato",
+    "signing": "Asegurando Firma...",
+    "alreadySigned": "Firmado",
+    "fullySigned": "Totalmente Firmado",
+    "contractActive": "Este contrato ahora es legalmente activo y está asegurado por hashing SHA-256.",
+    "signatures": "Firmas",
+    "signedIn": "Firmado en",
+    "tamperAlert": "ALERTA DE SEGURIDAD: Integridad del Contrato Violada",
+    "translationError": "Error en la traducción de IA. Inténtalo de nuevo.",
+    "translationPending": "La IA está realizando una traducción legal..."
   }
 }
