@@ -1,8 +1,7 @@
 DEDAN Mine (Worldmine) - Changelog
 =====================================
 
-v1.0.0 - Initial Production Launch
-- Core marketplace functionality implemented
+v1.0.0 - Production Launch | AI Marketplace Integrated
 - Integrated AI Marketplace with autonomous trading agents
 - Ethiopian Sovereign Hub with NBE compliance
 - Multi-currency wallet support (USD, ETB, USDT, USDC)
