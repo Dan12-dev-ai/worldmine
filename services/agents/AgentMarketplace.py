@@ -9,8 +9,8 @@ import json
 import uuid
 from dataclasses import dataclass
 
-from ..database import get_db
-from ..models import User, MarketAgent, AgentRental, Transaction
+from database import get_db
+from models import User, MarketAgent, AgentRental, Transaction
 
 @dataclass
 class AgentType:

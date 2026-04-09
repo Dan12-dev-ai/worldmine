@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 import asyncio
 import logging
 
-from ..consumer_protection import (
+from consumer_protection import (
     ConsumerProtectionFramework,
     consumer_protection_framework,
     SafetyLevel,

@@ -9,8 +9,8 @@ import json
 import asyncio
 from dataclasses import dataclass
 
-from ..database import get_db
-from ..models import User, Transaction, TrustSignal
+from database import get_db
+from models import User, Transaction, TrustSignal
 
 @dataclass
 class ReputationMetrics:

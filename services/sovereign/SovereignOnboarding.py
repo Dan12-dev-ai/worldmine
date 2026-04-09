@@ -10,8 +10,8 @@ import uuid
 import asyncio
 from dataclasses import dataclass
 
-from ..core import unified_state_manager, FeaturePriority
-from ..core.SovereignAuth import sovereign_auth_system, AuthLayer, AuthStatus
+from core import unified_state_manager, FeaturePriority
+from core.SovereignAuth import sovereign_auth_system, AuthLayer, AuthStatus
 
 @dataclass
 class OnboardingStep:

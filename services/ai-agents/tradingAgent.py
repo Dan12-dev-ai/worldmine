@@ -10,10 +10,10 @@ import asyncio
 import numpy as np
 from dataclasses import dataclass
 
-from ..models import AIAgent, AgentAction, Listing, User
-from ..database import get_db
-from ..federated_learning.localTraining import LocalModelTrainer
-from ..federated_learning.modelAggregation import ModelAggregator
+from models import AIAgent, AgentAction, Listing, User
+from database import get_db
+from federated_learning.localTraining import LocalModelTrainer
+from federated_learning.modelAggregation import ModelAggregator
 
 @dataclass
 class TradingStrategy:

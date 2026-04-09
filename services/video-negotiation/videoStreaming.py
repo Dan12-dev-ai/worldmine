@@ -10,8 +10,8 @@ import json
 import asyncio
 from dataclasses import dataclass
 
-from ..models import VideoSession, User, Listing
-from ..database import get_db
+from models import VideoSession, User, Listing
+from database import get_db
 
 @dataclass
 class VideoSessionConfig:

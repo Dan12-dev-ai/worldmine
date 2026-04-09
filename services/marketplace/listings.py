@@ -10,9 +10,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, desc, asc
 
-from ..models import Listing, User, Auction, BuyItNowTransaction
-from ..database import get_db
-from ..security import quantum_sign_data
+from models import Listing, User, Auction, BuyItNowTransaction
+from database import get_db
+from security import quantum_sign_data
 
 class ListingService:
     """Core marketplace service with competitor strengths + future-tech integration"""

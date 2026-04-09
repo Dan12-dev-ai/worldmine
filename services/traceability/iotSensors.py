@@ -10,9 +10,9 @@ import json
 import asyncio
 from dataclasses import dataclass, asdict
 
-from ..models import TraceabilityRecord, Listing
-from ..database import get_db
-from ..security.quantumEncryption import QuantumSecureData
+from models import TraceabilityRecord, Listing
+from database import get_db
+from security.quantumEncryption import QuantumSecureData
 
 @dataclass
 class SensorReading:

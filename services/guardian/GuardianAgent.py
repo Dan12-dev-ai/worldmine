@@ -13,8 +13,8 @@ from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
 
-from ..database import get_db
-from ..models import User, GuardianPattern
+from database import get_db
+from models import User, GuardianPattern
 
 @dataclass
 class GuardianState:

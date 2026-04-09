@@ -11,8 +11,8 @@ from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
-from ..services.guardian import guardian_agent
-from ..services.reputation import reputation_oracle
+from services.guardian import guardian_agent
+from services.reputation import reputation_oracle
 
 class GuardianMiddleware(BaseHTTPMiddleware):
     """Security middleware that monitors all user activity"""
