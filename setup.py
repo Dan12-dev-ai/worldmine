@@ -152,7 +152,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "dedan-mine=backend.app:main",
+            "dedan-mine=app:main",
         ],
     },
     include_package_data=True,

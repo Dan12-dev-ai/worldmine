@@ -1158,15 +1158,15 @@ async def rate_limit_handler(request: Request, exc):
         content={"error": "Rate limit exceeded", "message": "Too many requests"}
     )
 
-# Run the application
-if __name__ == "__main__":
+def main():
+    """Main entry point for the application"""
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 8000))
     environment = os.getenv("ENVIRONMENT", "production")
     
-    logger.info(f"🚀 Starting DEDAN Mine API on {host}:{port}")
-    logger.info(f"🌍 Environment: {environment}")
-    logger.info(f"🔧 Features: AI Agents, Video Negotiations, Traceability, ESG, ECX Compliance")
+    logger.info(f"?? Starting DEDAN Mine API on {host}:{port}")
+    logger.info(f"?? Environment: {environment}")
+    logger.info(f"?? Features: AI Agents, Video Negotiations, Traceability, ESG, ECX Compliance")
     
     uvicorn.run(
         "app:app",
@@ -1176,3 +1176,7 @@ if __name__ == "__main__":
         log_level="info",
         access_log=True
     )
+
+# Run the application
+if __name__ == "__main__":
+    main()
