@@ -46,10 +46,10 @@ grafana-api
 elasticsearch
 kafka-python
 pika
-blockchain
-web3
-eth-account
-solidity
+# REMOVED: blockchain (build issues)
+# REMOVED: web3 (build issues) 
+# REMOVED: eth-account (build issues)
+# REMOVED: solidity (build issues)
 pytest-cov
 black
 flake8
