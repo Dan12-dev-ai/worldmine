@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 
 from models import TraceabilityRecord, Listing
 from database import get_db
-from security.quantumEncryption import QuantumSecureData
+from services.security.quantumEncryption import QuantumSecureData
 
 @dataclass
 class SensorReading:

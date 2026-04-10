@@ -17,6 +17,10 @@ from .SovereignAuth import (
     AuthStatus,
     sovereign_auth_system
 )
+from .ConflictPrevention import (
+    ConflictPreventionSystem,
+    conflict_prevention_system
+)
 
 __all__ = [
     "UnifiedStateManager",
@@ -30,5 +34,7 @@ __all__ = [
     "AuthSession",
     "AuthLayer",
     "AuthStatus",
-    "sovereign_auth_system"
+    "sovereign_auth_system",
+    "ConflictPreventionSystem",
+    "conflict_prevention_system"
 ]

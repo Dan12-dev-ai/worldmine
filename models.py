@@ -539,7 +539,7 @@ Index('idx_listings_created', Listing.created_at.desc())
 Index('idx_auctions_listing', Auction.listing_id)
 Index('idx_auctions_current_bidder', Auction.current_bidder_id)
 Index('idx_auctions_status', Auction.auction_status)
-Index('idx_auctions_end_time', Auction.auction_end_time)
+Index('idx_auctions_end_time', Auction.actual_end_time)
 
 Index('idx_bids_auction', Bid.auction_id)
 Index('idx_bids_bidder', Bid.bidder_id)

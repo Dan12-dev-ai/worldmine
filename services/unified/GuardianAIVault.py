@@ -9,7 +9,7 @@ import json
 import asyncio
 from dataclasses import dataclass
 
-from core import unified_state_manager, FeaturePriority, FeatureStatus
+from core import unified_state_manager, FeaturePriority, FeatureStatus, UnifiedUserSession
 
 @dataclass
 class BiometricData:

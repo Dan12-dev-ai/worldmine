@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 
 from models import ComplianceRecord, User, Listing
 from database import get_db
-from ai.explainableAI import ComplianceAI
+from services.ai.explainableAI import ComplianceAI
 
 @dataclass
 class ECXGemType:

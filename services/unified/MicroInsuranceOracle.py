@@ -10,7 +10,7 @@ import asyncio
 import math
 from dataclasses import dataclass
 
-from core import unified_state_manager, FeaturePriority
+from core import unified_state_manager, FeaturePriority, UnifiedUserSession
 
 @dataclass
 class InsurancePolicy:

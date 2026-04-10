@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 
 from models import ESGMetrics, User, Listing
 from database import get_db
-from ai.explainableAI import ESGAIAnalyzer
+from services.ai.explainableAI import ESGAIAnalyzer
 
 @dataclass
 class EnvironmentalMetrics:

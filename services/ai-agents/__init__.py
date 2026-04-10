@@ -3,4 +3,4 @@
 
 from .tradingAgent import AutonomousTradingAgent
 
-__all__ = ["AutonomousTradingAgent"]
+__all__ = ['AutonomousTradingAgent', 'tradingAgent']
