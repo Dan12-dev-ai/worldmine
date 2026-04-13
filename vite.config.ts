@@ -39,16 +39,12 @@ export default defineConfig({
       ext: '.gz'
     })
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./"),
-    },
-  },
-  server: {
-    port: 3000,
-    host: true
-  },
+  root: '.',
+  base: '/',
+  publicDir: 'public',
   build: {
+    outDir: 'dist',
+    emptyOutDir: true,
     target: 'esnext',
     minify: 'terser',
     sourcemap: false,
@@ -65,6 +61,15 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 1000,
     assetsInlineLimit: 4096
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./"),
+    },
+  },
+  server: {
+    port: 3000,
+    host: true
   },
   optimizeDeps: {
     include: ['react', 'react-dom', '@supabase/supabase-js']
