@@ -6,8 +6,15 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from dotenv import load_dotenv
 
-# Import FastAPI app for Render compatibility
-from app import app
+# Import FastAPI for explicit app definition
+from fastapi import FastAPI
+
+# Explicit FastAPI app definition at top-level scope
+app = FastAPI(
+    title="DEDAN Mine - Conflict-Free Unified Architecture",
+    description="World's most advanced AI-powered mining transaction marketplace",
+    version="3.0.0"
+)
 
 # Load environment variables
 load_dotenv()
