@@ -16,6 +16,12 @@ app = FastAPI(
     version="3.0.0"
 )
 
+# Root endpoint to fix 404 error
+@app.get("/")
+async def root():
+    """Root endpoint - API health check"""
+    return {"message": "WorldMine API is active"}
+
 # Load environment variables
 load_dotenv()
 
