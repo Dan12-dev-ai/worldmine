@@ -6,19 +6,54 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from dotenv import load_dotenv
 
-from langgraph.graph import StateGraph, END
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage
-from anthropic import Anthropic
-from tavily import TavilyClient
-from supabase import create_client, Client
-import re
-
-# Import DEDAN Mine Tax Oracle for legal compliance
-from services.regulatory import tax_oracle
+# Import FastAPI app for Render compatibility
+from app import app
 
 # Load environment variables
 load_dotenv()
+
+# Export app for Render
+__all__ = ["app"]
+
+# Move problematic imports inside functions to avoid circular dependencies
+langchain_openai = None
+ChatOpenAI = None
+StateGraph = None
+END = None
+HumanMessage = None
+AIMessage = None
+Anthropic = None
+TavilyClient = None
+create_client = None
+Client = None
+tax_oracle = None
+
+def _initialize_dependencies():
+    """Initialize dependencies only when needed"""
+    global langchain_openai, ChatOpenAI, StateGraph, END
+    global HumanMessage, AIMessage, Anthropic, TavilyClient
+    global create_client, Client, tax_oracle
+    
+    if langchain_openai is None:
+        from langchain_openai import ChatOpenAI as _ChatOpenAI
+        from langgraph.graph import StateGraph as _StateGraph, END as _END
+        from langchain_core.messages import HumanMessage as _HumanMessage, AIMessage as _AIMessage
+        from anthropic import Anthropic as _Anthropic
+        from tavily import TavilyClient as _TavilyClient
+        from supabase import create_client as _create_client, Client as _Client
+        from services.regulatory import tax_oracle as _tax_oracle
+        
+        langchain_openai = _ChatOpenAI
+        ChatOpenAI = _ChatOpenAI
+        StateGraph = _StateGraph
+        END = _END
+        HumanMessage = _HumanMessage
+        AIMessage = _AIMessage
+        Anthropic = _Anthropic
+        TavilyClient = _TavilyClient
+        create_client = _create_client
+        Client = _Client
+        tax_oracle = _tax_oracle
 
 @dataclass
 class NewsItem:
@@ -41,6 +76,7 @@ class AgentState:
 
 class MarketNewsAgent:
     def __init__(self):
+        _initialize_dependencies()
         self.openai_llm = ChatOpenAI(model="gpt-4", temperature=0.1)
         self.claude_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         self.tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
