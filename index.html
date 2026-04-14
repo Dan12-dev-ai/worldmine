@@ -5,35 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DEDAN - Quality in Action</title>
-    <script type="module">
-      // Import React app directly
-      import React from 'https://cdn.skypack.dev/react';
-      import ReactDOM from 'https://cdn.skypack.dev/react-dom';
-      
-      // Simple app component
-      function App() {
-        return React.createElement('div', {
-          style: {
-            padding: '20px',
-            fontFamily: 'Arial, sans-serif',
-            textAlign: 'center',
-            backgroundColor: '#f5f5f5'
-          }
-        }, 
-        React.createElement('h1', null, 'DEDAN Mine API'),
-        React.createElement('p', null, 'API is running successfully!'),
-        React.createElement('p', { style: { fontSize: '14px', color: '#666' } }, 'Build process completed.')
-        );
-      }
-      
-      // Render the app
-      ReactDOM.render(
-        React.createElement(App),
-        document.getElementById('root')
-      );
-    </script>
   </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/frontend/src/index.js"></script>
   </body>
 </html>
