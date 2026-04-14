@@ -49,7 +49,7 @@ export default defineConfig({
     minify: 'terser',
     sourcemap: false,
     rollupOptions: {
-      input: './src/main.tsx',
+      input: './index.html', // Vite will resolve to script path from here
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
