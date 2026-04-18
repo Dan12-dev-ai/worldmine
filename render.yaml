@@ -9,6 +9,12 @@ services:
     healthCheckPath: /health
     healthCheckTimeout: 30
     autoDeploy: true
+    multiRegionHealthChecks:
+      enabled: true
+      endpoints:
+        - https://worldmine-api.onrender.com/health
+        - https://worldmine-swarm.onrender.com/health
+        - https://worldmine-payments.onrender.com/health
     envVars:
       # Core Environment
       - key: PYTHON_VERSION
@@ -112,6 +118,22 @@ services:
       - key: GOOGLE_ANALYTICS_ID
         sync: false
       - key: MIXPANEL_TOKEN
+        sync: false
+      
+      # Failover Configuration
+      - key: FAILOVER_ENABLED
+        sync: false
+      - key: MULTI_REGION_HEALTH_CHECKS
+        sync: false
+      - key: DEPIN_INTEGRATION
+        sync: false
+      - key: BACKUP_PROVIDERS
+        sync: false
+      - key: HEALTH_CHECK_ENDPOINTS
+        sync: false
+      - key: FAILBACK_THRESHOLD
+        sync: false
+      - key: RECOVERY_THRESHOLD
         sync: false
     regions:
       # Global Edge Regions for 0.1ms latency

@@ -196,6 +196,12 @@
     }
   ],
   "edge": {
+    "healthChecks": {
+      "enabled": true,
+      "multiRegion": true,
+      "automaticFailover": true,
+      "depinIntegration": true
+    },
     "runtime": "nodejs18.x",
     "regions": [
       "sin1", "hkg1", "fra1", "iad1", "pdx1",
