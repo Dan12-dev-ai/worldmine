@@ -1,29 +1,118 @@
 services:
-  # Main API Service - Edge Optimized
+  # Main API Service - Production Optimized
   - type: web
     name: worldmine-api
     env: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     healthCheckTimeout: 30
     autoDeploy: true
     envVars:
+      # Core Environment
       - key: PYTHON_VERSION
         value: 3.11
       - key: FASTAPI_ENV
         value: production
-      - key: REDIS_URL
-        value: redis://default:redispwd@redis:6379/0
+      - key: PROD_URL
+        sync: false
+      - key: PORT
+        value: 8000
+      
+      # Database Configuration (Secure)
       - key: DATABASE_URL
-        value: sqlite:///./worldmine.db
+        sync: false
+      - key: DATABASE_TYPE
+        value: sqlite
+      
+      # Redis Configuration (Secure)
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: 6379
+      - key: REDIS_PASSWORD
+        sync: false
+      
+      # Global Optimization
       - key: WORLDWIDE_OPTIMIZATION
         value: enabled
       - key: EDGE_COMPUTING
         value: enabled
       - key: LATENCY_TARGET
         value: 0.1ms
+      - key: GLOBAL_REPLICATION
+        value: enabled
+      
+      # Security Configuration
+      - key: SECRET_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      
+      # API Configuration
+      - key: API_VERSION
+        value: v1
+      - key: API_RATE_LIMIT
+        value: 1000
+      - key: API_TIMEOUT
+        value: 30
+      
+      # Swarm Configuration
+      - key: SWARM_MODE
+        value: production
+      - key: SWARM_API_KEY
+        sync: false
+      - key: SWARM_WEBHOOK_SECRET
+        sync: false
+      
+      # Payment Configuration
+      - key: PAYMENT_HUB_ENABLED
+        value: true
+      - key: PAYMENT_API_KEY
+        sync: false
+      - key: PAYMENT_WEBHOOK_SECRET
+        sync: false
+      
+      # Telegram Configuration
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      
+      # External API Keys (Secure)
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: COINBASE_API_KEY
+        sync: false
+      - key: BINANCE_API_KEY
+        sync: false
+      - key: UPWORK_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      
+      # Currency Exchange APIs
+      - key: FIXER_API_KEY
+        sync: false
+      - key: EXCHANGERATE_API_KEY
+        sync: false
+      - key: CURRENCYAPI_KEY
+        sync: false
+      
+      # Monitoring & Analytics
+      - key: SENTRY_DSN
+        sync: false
+      - key: GOOGLE_ANALYTICS_ID
+        sync: false
+      - key: MIXPANEL_TOKEN
+        sync: false
     regions:
       # Global Edge Regions for 0.1ms latency
       - oregon        # USA West Coast (New York, Chicago)
@@ -48,26 +137,65 @@ services:
       - name: X-CDN-Optimization
         value: cloudflare, fastly
 
-  # Swarm API Service - Edge Optimized
+  # Swarm API Service - Production Optimized
   - type: web
     name: worldmine-swarm
     env: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.swarm_api:swarm_app --host 0.0.0.0 --port 8001
+    startCommand: uvicorn src.swarm_api:swarm_app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/swarm/status
     autoDeploy: true
     envVars:
+      # Core Environment
       - key: PYTHON_VERSION
         value: 3.11
       - key: SWARM_MODE
         value: production
+      - key: PROD_URL
+        sync: false
+      - key: PORT
+        value: 8001
+      
+      # Swarm Configuration
       - key: GLOBAL_DOMINATION
         value: enabled
       - key: EDGE_COMPUTING
         value: enabled
       - key: LATENCY_TARGET
         value: 0.1ms
+      - key: GLOBAL_REACH
+        value: 256-countries
+      
+      # Security Configuration
+      - key: SWARM_API_KEY
+        sync: false
+      - key: SWARM_WEBHOOK_SECRET
+        sync: false
+      - key: SWARM_JWT_SECRET
+        sync: false
+      
+      # Database Configuration
+      - key: DATABASE_URL
+        sync: false
+      - key: SWARM_DB_PATH
+        value: ./global_reach.db
+      
+      # External Services
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: UPWORK_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      
+      # Monitoring
+      - key: SENTRY_DSN
+        sync: false
+      - key: SWARM_METRICS_ENABLED
+        value: true
     regions:
       # Global Edge Regions for Swarm Operations
       - oregon        # USA West Coast
@@ -88,26 +216,91 @@ services:
       - name: X-Global-Reach
         value: 256-countries
 
-  # Payment Hub Service - Edge Optimized
+  # Payment Hub Service - Production Optimized
   - type: web
     name: worldmine-payments
     env: python
-    plan: free
+    plan: starter
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn src.universal_payment_hub:payment_app --host 0.0.0.0 --port 8002
+    startCommand: uvicorn src.payment_api:payment_app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/payments/health
     autoDeploy: true
     envVars:
+      # Core Environment
       - key: PYTHON_VERSION
         value: 3.11
       - key: PAYMENT_HUB
         value: production
+      - key: PROD_URL
+        sync: false
+      - key: PORT
+        value: 8002
+      
+      # Payment Configuration
       - key: GLOBAL_CURRENCIES
         value: 256-countries
       - key: EDGE_COMPUTING
         value: enabled
       - key: LATENCY_TARGET
         value: 0.1ms
+      - key: PAYMENT_PROCESSING_ENABLED
+        value: true
+      
+      # Security Configuration
+      - key: PAYMENT_API_KEY
+        sync: false
+      - key: PAYMENT_WEBHOOK_SECRET
+        sync: false
+      - key: PAYMENT_JWT_SECRET
+        sync: false
+      - key: PAYMENT_ENCRYPTION_KEY
+        sync: false
+      
+      # Database Configuration
+      - key: DATABASE_URL
+        sync: false
+      - key: PAYMENT_DB_PATH
+        value: ./payment_hub.db
+      
+      # Currency Exchange APIs
+      - key: FIXER_API_KEY
+        sync: false
+      - key: EXCHANGERATE_API_KEY
+        sync: false
+      - key: CURRENCYAPI_KEY
+        sync: false
+      - key: OPENEXCHANGE_API_KEY
+        sync: false
+      
+      # Payment Processor APIs
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: COINBASE_API_KEY
+        sync: false
+      - key: BINANCE_API_KEY
+        sync: false
+      - key: COINBASE_WEBHOOK_SECRET
+        sync: false
+      
+      # Compliance & Security
+      - key: KYC_API_KEY
+        sync: false
+      - key: AML_API_KEY
+        sync: false
+      - key: FRAUD_DETECTION_KEY
+        sync: false
+      
+      # Monitoring
+      - key: SENTRY_DSN
+        sync: false
+      - key: PAYMENT_METRICS_ENABLED
+        value: true
     regions:
       # Global Edge Regions for Payment Processing
       - oregon        # USA West Coast
