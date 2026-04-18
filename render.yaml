@@ -1,13 +1,132 @@
 services:
-  # Main Backend API
+  # Main API Service - Edge Optimized
   - type: web
-    name: dedan-mine-backend
+    name: worldmine-api
     env: python
+    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
     healthCheckPath: /health
     healthCheckTimeout: 30
     autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: FASTAPI_ENV
+        value: production
+      - key: REDIS_URL
+        value: redis://default:redispwd@redis:6379/0
+      - key: DATABASE_URL
+        value: sqlite:///./worldmine.db
+      - key: WORLDWIDE_OPTIMIZATION
+        value: enabled
+      - key: EDGE_COMPUTING
+        value: enabled
+      - key: LATENCY_TARGET
+        value: 0.1ms
+    regions:
+      # Global Edge Regions for 0.1ms latency
+      - oregon        # USA West Coast (New York, Chicago)
+      - frankfurt     # Europe (London, Paris, Berlin)
+      - singapore     # Asia (Tokyo, Seoul, Mumbai)
+      - mumbai       # India (Addis Ababa, Nairobi)
+      - sao-paulo    # South America (São Paulo, Buenos Aires)
+    scaling:
+      minInstances: 1
+      maxInstances: 10
+      targetCPUPercent: 70
+      targetMemoryPercent: 80
+    headers:
+      - name: X-Edge-Location
+        value: enabled
+      - name: X-Latency-Target
+        value: 0.1ms
+      - name: X-Global-Optimization
+        value: true
+      - name: X-Cache-Control
+        value: edge-cache, max-age=300
+      - name: X-CDN-Optimization
+        value: cloudflare, fastly
+
+  # Swarm API Service - Edge Optimized
+  - type: web
+    name: worldmine-swarm
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.swarm_api:swarm_app --host 0.0.0.0 --port 8001
+    healthCheckPath: /api/swarm/status
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: SWARM_MODE
+        value: production
+      - key: GLOBAL_DOMINATION
+        value: enabled
+      - key: EDGE_COMPUTING
+        value: enabled
+      - key: LATENCY_TARGET
+        value: 0.1ms
+    regions:
+      # Global Edge Regions for Swarm Operations
+      - oregon        # USA West Coast
+      - frankfurt     # Europe
+      - singapore     # Asia
+      - mumbai       # India/Africa
+      - sao-paulo    # South America
+    scaling:
+      minInstances: 1
+      maxInstances: 5
+      targetCPUPercent: 60
+      targetMemoryPercent: 70
+    headers:
+      - name: X-Swarm-Optimization
+        value: enabled
+      - name: X-Latency-Target
+        value: 0.1ms
+      - name: X-Global-Reach
+        value: 256-countries
+
+  # Payment Hub Service - Edge Optimized
+  - type: web
+    name: worldmine-payments
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.universal_payment_hub:payment_app --host 0.0.0.0 --port 8002
+    healthCheckPath: /api/payments/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: PAYMENT_HUB
+        value: production
+      - key: GLOBAL_CURRENCIES
+        value: 256-countries
+      - key: EDGE_COMPUTING
+        value: enabled
+      - key: LATENCY_TARGET
+        value: 0.1ms
+    regions:
+      # Global Edge Regions for Payment Processing
+      - oregon        # USA West Coast
+      - frankfurt     # Europe
+      - singapore     # Asia
+      - mumbai       # India/Africa
+      - sao-paulo    # South America
+    scaling:
+      minInstances: 1
+      maxInstances: 8
+      targetCPUPercent: 65
+      targetMemoryPercent: 75
+    headers:
+      - name: X-Payment-Optimization
+        value: enabled
+      - name: X-Latency-Target
+        value: 0.1ms
+      - name: X-Currency-Conversion
+        value: real-time
     envVars:
       - key: PYTHON_VERSION
         value: 3.11

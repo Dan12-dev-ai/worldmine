@@ -3,7 +3,47 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "rootDirectory": "web-client",
+  "regions": [
+    "sin1",    # Singapore - Asia Pacific (Tokyo, Mumbai, Addis Ababa)
+    "hkg1",    # Hong Kong - Asia Pacific (Shanghai, Seoul, Bangkok)
+    "fra1",    # Frankfurt - Europe (London, Paris, Berlin, Rome)
+    "iad1",    # Virginia - USA East (New York, Washington DC, Toronto)
+    "pdx1",    # Portland - USA West (San Francisco, Los Angeles, Seattle)
+    "gru1",    # São Paulo - South America (Buenos Aires, Lima, Bogotá)
+    "sfo1",    # San Francisco - USA West Coast (Silicon Valley, LA)
+    "lhr1",    # London - Europe (Manchester, Dublin, Amsterdam)
+    "nrt1",    # Tokyo - Asia Pacific (Osaka, Seoul, Beijing)
+    "syd1",    # Sydney - Oceania (Melbourne, Auckland)
+    "bom1",    # Mumbai - Asia/Africa (Addis Ababa, Nairobi, Lagos)
+    "cpt1",    # Cape Town - Africa (Johannesburg, Cairo, Lagos)
+    "dub1"     # Dubai - Middle East (Riyadh, Doha, Tel Aviv)
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x",
+      "memory": 1024,
+      "maxDuration": 30,
+      "regions": [
+        "sin1", "hkg1", "fra1", "iad1", "pdx1", 
+        "gru1", "sfo1", "lhr1", "nrt1", "syd1",
+        "bom1", "cpt1", "dub1"
+      ]
+    },
+    "swarm/**/*.js": {
+      "runtime": "nodejs18.x",
+      "memory": 2048,
+      "maxDuration": 60,
+      "regions": [
+        "sin1", "hkg1", "fra1", "iad1", "pdx1",
+        "gru1", "sfo1", "lhr1", "nrt1", "syd1",
+        "bom1", "cpt1", "dub1"
+      ]
+    }
+  },
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/swarm/(.*)", "destination": "/swarm/$1" },
+    { "source": "/payments/(.*)", "destination": "/payments/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -11,8 +51,91 @@
       "source": "/(.*)",
       "headers": [
         {
+          "key": "X-Edge-Location",
+          "value": "enabled"
+        },
+        {
+          "key": "X-Latency-Target",
+          "value": "0.1ms"
+        },
+        {
+          "key": "X-Global-Optimization",
+          "value": "true"
+        },
+        {
+          "key": "X-Worldwide-Reach",
+          "value": "256-countries"
+        },
+        {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-API-Edge-Optimization",
+          "value": "enabled"
+        },
+        {
+          "key": "X-Latency-Target",
+          "value": "0.1ms"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/swarm/(.*)",
+      "headers": [
+        {
+          "key": "X-Swarm-Edge-Optimization",
+          "value": "enabled"
+        },
+        {
+          "key": "X-Latency-Target",
+          "value": "0.1ms"
+        },
+        {
+          "key": "X-Global-Domination",
+          "value": "active"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/payments/(.*)",
+      "headers": [
+        {
+          "key": "X-Payment-Edge-Optimization",
+          "value": "enabled"
+        },
+        {
+          "key": "X-Latency-Target",
+          "value": "0.1ms"
+        },
+        {
+          "key": "X-Currency-Conversion",
+          "value": "real-time"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     },
@@ -34,5 +157,21 @@
         }
       ]
     }
-  ]
+  ],
+  "edge": {
+    "runtime": "nodejs18.x",
+    "regions": [
+      "sin1", "hkg1", "fra1", "iad1", "pdx1",
+      "gru1", "sfo1", "lhr1", "nrt1", "syd1",
+      "bom1", "cpt1", "dub1"
+    ]
+  },
+  "build": {
+    "env": {
+      "VITE_EDGE_OPTIMIZATION": "enabled",
+      "VITE_GLOBAL_LATENCY_TARGET": "0.1ms",
+      "VITE_WORLDWIDE_DEPLOYMENT": "enabled",
+      "VITE_GLOBAL_REPLICATION": "enabled"
+    }
+  }
 }

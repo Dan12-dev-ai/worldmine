@@ -28,8 +28,14 @@ load_dotenv()
 # Import swarm API for global domination
 from src.swarm_api import swarm_app
 
+# Import payment API for global payments
+from src.payment_api import payment_app
+
 # Mount swarm API for backbone operations
 app.mount("/swarm", swarm_app, tags=["swarm"])
+
+# Mount payment API for global payments
+app.mount("/payments", payment_app, tags=["payments"])
 
 # Export app for Render
 __all__ = ["app"]

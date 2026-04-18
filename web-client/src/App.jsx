@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import './index.css';
 import { useAnalytics } from './components/AnalyticsProvider';
 import GlobalSwarmDashboard from './components/GlobalSwarmDashboard';
+import PlanetaryUI from './components/PlanetaryUI';
 
 // Lazy load components for serverless optimization
 const SpatialLiquidGlassUI = React.lazy(() => import('./components/SpatialLiquidGlassUI'));
@@ -200,6 +201,16 @@ const App = () => {
               element={
                 <RouteErrorBoundary>
                   <GlobalSwarmDashboard />
+                </RouteErrorBoundary>
+              }
+            />
+            
+            {/* Planetary UI - Simple for Non-Tech Users */}
+            <Route
+              path="/planetary"
+              element={
+                <RouteErrorBoundary>
+                  <PlanetaryUI />
                 </RouteErrorBoundary>
               }
             />
