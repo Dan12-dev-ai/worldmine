@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Box, Grid, Button, Chip } from '@mui/material';
+import { Card, CardContent, Typography, Box, Grid, Button, Chip, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { useTranslation } from '../locales/translations';
 
 const PlanetaryUI = () => {
+  const { t, language, changeLanguage, availableLanguages } = useTranslation();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [globalStats, setGlobalStats] = useState({
     usersActive: '2.5M',
@@ -10,12 +12,18 @@ const PlanetaryUI = () => {
     growth: '+127%'
   });
 
+  const languageOptions = {
+    en: { name: 'English', flag: 'en' },
+    am: { name: 'Amharic', flag: 'am' },
+    es: { name: 'Español', flag: 'es' }
+  };
+
   const tabs = [
-    { id: 'dashboard', label: '🌍 Global Dashboard', icon: '📊' },
-    { id: 'payments', label: '💰 Send Money', icon: '💳' },
-    { id: 'swarm', label: '🤖 AI Agents', icon: '🤖' },
-    { id: 'partners', label: '🤝 Partners', icon: '🤝' },
-    { id: 'support', label: '📞 Help', icon: '📞' }
+    { id: 'dashboard', label: t('header.globalStatus'), icon: 'Global Dashboard' },
+    { id: 'payments', label: t('header.sendMoney'), icon: 'Send Money' },
+    { id: 'swarm', label: t('header.aiAgents'), icon: 'AI Agents' },
+    { id: 'partners', label: t('header.partners'), icon: 'Partners' },
+    { id: 'support', label: t('header.help'), icon: 'Help' }
   ];
 
   const fetchGlobalStats = async () => {
@@ -37,7 +45,7 @@ const PlanetaryUI = () => {
   const renderDashboard = () => (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
-        🌍 DEDAN WORLDMINE - GLOBAL STATUS
+        {t('dashboard.title')}
       </Typography>
       
       <Grid container spacing={3}>
@@ -45,13 +53,13 @@ const PlanetaryUI = () => {
           <Card sx={{ bgcolor: '#1a237e', color: 'white' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                👥 Active Users
+                {t('dashboard.activeUsers')}
               </Typography>
               <Typography variant="h3" sx={{ fontSize: '2.5rem', fontWeight: 'bold' }}>
                 {globalStats.usersActive}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                +127% this month
+                +127% {t('dashboard.thisMonth')}
               </Typography>
             </CardContent>
           </Card>
@@ -61,13 +69,13 @@ const PlanetaryUI = () => {
           <Card sx={{ bgcolor: '#1a237e', color: 'white' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                🌍 Countries Served
+                {t('dashboard.countriesServed')}
               </Typography>
               <Typography variant="h3" sx={{ fontSize: '2.5rem', fontWeight: 'bold' }}>
                 {globalStats.countriesServed}/256
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                61% global coverage
+                {t('dashboard.globalCoverage')}
               </Typography>
             </CardContent>
           </Card>
@@ -77,13 +85,13 @@ const PlanetaryUI = () => {
           <Card sx={{ bgcolor: '#1a237e', color: 'white' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                💰 Total Revenue
+                {t('dashboard.totalRevenue')}
               </Typography>
               <Typography variant="h3" sx={{ fontSize: '2.5rem', fontWeight: 'bold' }}>
                 {globalStats.revenue}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                +89% this quarter
+                +89% {t('dashboard.thisQuarter')}
               </Typography>
             </CardContent>
           </Card>
@@ -93,13 +101,13 @@ const PlanetaryUI = () => {
           <Card sx={{ bgcolor: '#1a237e', color: 'white' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                🚀 Growth Rate
+                {t('dashboard.growthRate')}
               </Typography>
               <Typography variant="h3" sx={{ fontSize: '2.5rem', fontWeight: 'bold' }}>
                 {globalStats.growth}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                #1 in global mining
+                {t('dashboard.globalMining')}
               </Typography>
             </CardContent>
           </Card>
@@ -111,18 +119,18 @@ const PlanetaryUI = () => {
   const renderPayments = () => (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
-        💳 GLOBAL PAYMENTS - SEND MONEY WORLDWIDE
+        {t('payments.title')}
       </Typography>
       
       <Card sx={{ bgcolor: '#1a237e', color: 'white', mb: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            🌍 Send Money to Any Country
+            {t('payments.sendMoneyToAnyCountry')}
           </Typography>
           
           <Box sx={{ mb: 3 }}>
             <Typography variant="body1" sx={{ mb: 2 }}>
-              💵 From:
+              {t('payments.from')}
             </Typography>
             <Box
               sx={{
@@ -132,13 +140,13 @@ const PlanetaryUI = () => {
                 bgcolor: '#0a0e27'
               }}
             >
-              <Typography variant="body2">Select your currency</Typography>
+              <Typography variant="body2">{t('payments.selectYourCurrency')}</Typography>
             </Box>
           </Box>
           
           <Box sx={{ mb: 3 }}>
             <Typography variant="body1" sx={{ mb: 2 }}>
-              🎯 To:
+              {t('payments.to')}
             </Typography>
             <Box
               sx={{
@@ -148,13 +156,13 @@ const PlanetaryUI = () => {
                 bgcolor: '#0a0e27'
               }}
             >
-              <Typography variant="body2">Select recipient country & currency</Typography>
+              <Typography variant="body2">{t('payments.selectRecipientCountry')}</Typography>
             </Box>
           </Box>
           
           <Box sx={{ mb: 3 }}>
             <Typography variant="body1" sx={{ mb: 2 }}>
-              💰 Amount:
+              {t('payments.amount')}
             </Typography>
             <Box
               sx={{
@@ -164,7 +172,7 @@ const PlanetaryUI = () => {
                 bgcolor: '#0a0e27'
               }}
             >
-              <Typography variant="body2">Enter amount</Typography>
+              <Typography variant="body2">{t('payments.enterAmount')}</Typography>
             </Box>
           </Box>
           
@@ -180,7 +188,7 @@ const PlanetaryUI = () => {
               '&:hover': { bgcolor: '#00b8e6' }
             }}
           >
-            🚀 SEND MONEY NOW
+            {t('payments.sendMoneyNow')}
           </Button>
         </CardContent>
       </Card>
@@ -188,16 +196,16 @@ const PlanetaryUI = () => {
       <Card sx={{ bgcolor: '#1a237e', color: 'white' }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            🌍 Supported Countries
+            {t('payments.supportedCountries')}
           </Typography>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            We support 256 countries with real-time currency conversion:
+            {t('payments.supportedCountriesDesc')}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {['🇺🇸 USA', '🇨🇳 China', '🇦🇪 UAE', '🇪🇹 Ethiopia', '🇬🇧 UK', 
-              '🇯🇵 Japan', '🇸🇬 Singapore', '🇧🇷 Brazil', '🇮🇳 India', 
-              '🇷🇺 Russia', '🇳🇬 Nigeria', '🇿🇦 South Africa'].map((flag, index) => (
-              <Chip key={index} label={flag} sx={{ m: 0.5, fontSize: '1.5rem' }} />
+            {['USA', 'China', 'UAE', 'Ethiopia', 'UK', 
+              'Japan', 'Singapore', 'Brazil', 'India', 
+              'Russia', 'Nigeria', 'South Africa'].map((country, index) => (
+              <Chip key={index} label={country} sx={{ m: 0.5, fontSize: '1.5rem' }} />
             ))}
           </Box>
         </CardContent>
@@ -208,54 +216,54 @@ const PlanetaryUI = () => {
   const renderSwarm = () => (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
-        🤖 AI AGENTS - GLOBAL AUTOMATION
+        {t('swarm.title')}
       </Typography>
       
       <Card sx={{ bgcolor: '#1a237e', color: 'white', mb: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            🌍 Active AI Agents
+            {t('swarm.activeAiAgents')}
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Box sx={{ p: 2, border: '1px solid #333', borderRadius: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                🗣️ Global Voice Agent
+                {t('swarm.globalVoiceAgent.title')}
               </Typography>
               <Typography variant="body2">
-                Creating content in 100+ languages
+                {t('swarm.globalVoiceAgent.description')}
               </Typography>
-              <Chip label="✅ ACTIVE" color="success" size="small" sx={{ mt: 1 }} />
+              <Chip label={t('swarm.globalVoiceAgent.active')} color="success" size="small" sx={{ mt: 1 }} />
             </Box>
             
             <Box sx={{ p: 2, border: '1px solid #333', borderRadius: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                🚀 Growth Hacker Agent
+                {t('swarm.growthHackerAgent.title')}
               </Typography>
               <Typography variant="body2">
-                Optimizing SEO worldwide
+                {t('swarm.growthHackerAgent.description')}
               </Typography>
-              <Chip label="✅ ACTIVE" color="success" size="small" sx={{ mt: 1 }} />
+              <Chip label={t('swarm.growthHackerAgent.active')} color="success" size="small" sx={{ mt: 1 }} />
             </Box>
             
             <Box sx={{ p: 2, border: '1px solid #333', borderRadius: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                ⚖️ Legal Architect Agent
+                {t('swarm.legalArchitectAgent.title')}
               </Typography>
               <Typography variant="body2">
-                Managing global compliance
+                {t('swarm.legalArchitectAgent.description')}
               </Typography>
-              <Chip label="✅ ACTIVE" color="success" size="small" sx={{ mt: 1 }} />
+              <Chip label={t('swarm.legalArchitectAgent.active')} color="success" size="small" sx={{ mt: 1 }} />
             </Box>
             
             <Box sx={{ p: 2, border: '1px solid #333', borderRadius: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-                🤝 B2B Negotiator Agent
+                {t('swarm.b2bNegotiatorAgent.title')}
               </Typography>
               <Typography variant="body2">
-                Building global partnerships
+                {t('swarm.b2bNegotiatorAgent.description')}
               </Typography>
-              <Chip label="✅ ACTIVE" color="success" size="small" sx={{ mt: 1 }} />
+              <Chip label={t('swarm.b2bNegotiatorAgent.active')} color="success" size="small" sx={{ mt: 1 }} />
             </Box>
           </Box>
         </CardContent>
@@ -274,7 +282,7 @@ const PlanetaryUI = () => {
         }}
         onClick={() => window.open('/swarm', '_blank')}
       >
-        🎮 CONTROL AI AGENTS
+        {t('swarm.controlAiAgents')}
       </Button>
     </Box>
   );
@@ -408,11 +416,43 @@ const PlanetaryUI = () => {
         p: 2, 
         bgcolor: '#1a237e', 
         borderBottom: '2px solid #00d4ff',
-        textAlign: 'center'
+        textAlign: 'center',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        <Typography variant="h5" sx={{ color: '#00d4ff', fontWeight: 'bold' }}>
-          🌍 DEDAN WORLDMINE - GLOBAL PLATFORM
+        <Typography variant="h5" sx={{ color: '#00d4ff', fontWeight: 'bold', flex: 1, textAlign: 'center' }}>
+          {t('header.title')}
         </Typography>
+        
+        {/* Language Selector */}
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <Select
+            value={language}
+            onChange={(e) => changeLanguage(e.target.value)}
+            sx={{
+              bgcolor: '#0a0e27',
+              color: 'white',
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#00d4ff',
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#00d4ff',
+              },
+              '& .MuiSvgIcon-root': {
+                color: '#00d4ff',
+              },
+            }}
+          >
+            {availableLanguages.map((lang) => (
+              <MenuItem key={lang} value={lang}>
+                {languageOptions[lang].flag === 'en' && 'English'}
+                {languageOptions[lang].flag === 'am' && 'Amharic'}
+                {languageOptions[lang].flag === 'es' && 'Español'}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
       
       {/* Navigation Tabs */}
@@ -461,7 +501,7 @@ const PlanetaryUI = () => {
         textAlign: 'center'
       }}>
         <Typography variant="body2" sx={{ opacity: 0.7 }}>
-          🌍 Available in 256 countries • 100+ languages • 24/7 support
+          {t('footer.worldwideAccess')} - {t('footer.languages')} - {t('footer.support')}
         </Typography>
       </Box>
     </Box>

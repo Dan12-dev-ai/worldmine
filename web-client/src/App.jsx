@@ -11,6 +11,7 @@ import './index.css';
 import { useAnalytics } from './components/AnalyticsProvider';
 import GlobalSwarmDashboard from './components/GlobalSwarmDashboard';
 import PlanetaryUI from './components/PlanetaryUI';
+import LocalizationDemo from './components/LocalizationDemo';
 
 // Lazy load components for serverless optimization
 const SpatialLiquidGlassUI = React.lazy(() => import('./components/SpatialLiquidGlassUI'));
@@ -211,6 +212,16 @@ const App = () => {
               element={
                 <RouteErrorBoundary>
                   <PlanetaryUI />
+                </RouteErrorBoundary>
+              }
+            />
+            
+            {/* Localization Demo */}
+            <Route
+              path="/localization-demo"
+              element={
+                <RouteErrorBoundary>
+                  <LocalizationDemo />
                 </RouteErrorBoundary>
               }
             />
