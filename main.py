@@ -25,6 +25,12 @@ async def root():
 # Load environment variables
 load_dotenv()
 
+# Import swarm API for global domination
+from src.swarm_api import swarm_app
+
+# Mount swarm API for backbone operations
+app.mount("/swarm", swarm_app, tags=["swarm"])
+
 # Export app for Render
 __all__ = ["app"]
 

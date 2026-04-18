@@ -7,7 +7,9 @@
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import './index.css';
 import { useAnalytics } from './components/AnalyticsProvider';
+import GlobalSwarmDashboard from './components/GlobalSwarmDashboard';
 
 // Lazy load components for serverless optimization
 const SpatialLiquidGlassUI = React.lazy(() => import('./components/SpatialLiquidGlassUI'));
@@ -188,6 +190,16 @@ const App = () => {
               element={
                 <RouteErrorBoundary>
                   <AgenticDashboard />
+                </RouteErrorBoundary>
+              }
+            />
+            
+            {/* Global Swarm Dashboard */}
+            <Route
+              path="/swarm"
+              element={
+                <RouteErrorBoundary>
+                  <GlobalSwarmDashboard />
                 </RouteErrorBoundary>
               }
             />
