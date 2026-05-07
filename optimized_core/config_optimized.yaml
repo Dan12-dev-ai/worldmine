@@ -1,0 +1,453 @@
+# OPTIMIZED CONFIGURATION - DEDAN WORLDMINE
+# High-performance, scalable, secure configuration
+
+version: "2035.0.0-optimized"
+
+# Database Configuration
+database:
+  postgresql:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    name: ${DB_NAME:worldmine}
+    user: ${DB_USER:postgres}
+    password: ${DB_PASSWORD}
+    ssl_mode: require
+    ssl_cert: ${DB_SSL_CERT}
+    ssl_key: ${DB_SSL_KEY}
+    connection_pool:
+      min_size: ${DB_MIN_SIZE:5}
+      max_size: ${DB_MAX_SIZE:20}
+      command_timeout: ${DB_TIMEOUT:60}
+      idle_timeout: ${DB_IDLE_TIMEOUT:300}
+      max_lifetime: ${DB_MAX_LIFETIME:3600}
+    query_timeout: ${DB_QUERY_TIMEOUT:30}
+    statement_timeout: ${DB_STATEMENT_TIMEOUT:60}
+    application_name: "worldmine_optimized"
+    jit: off
+    shared_preload_libraries:
+      - "pg_stat_statements"
+      - "auto_explain"
+
+# Redis Configuration
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  db: ${REDIS_DB:0}
+  password: ${REDIS_PASSWORD}
+  ssl: true
+  connection_pool:
+    max_connections: ${REDIS_MAX_CONNECTIONS:20}
+    retry_on_timeout: true
+    socket_keepalive: true
+    socket_keepalive_options:
+      TCP_KEEPIDLE: 1
+      TCP_KEEPINTVL: 3
+      TCP_KEEPCNT: 5
+  cluster:
+    enabled: ${REDIS_CLUSTER_ENABLED:false}
+    nodes:
+      - host: ${REDIS_HOST:localhost}
+        port: ${REDIS_PORT:6379}
+  sentinel:
+    enabled: ${REDIS_SENTINEL_ENABLED:false}
+    master_name: ${REDIS_SENTINEL_MASTER:mymaster}
+    sentinels:
+      - host: ${REDIS_SENTINEL_HOST:localhost}
+        port: ${REDIS_SENTINEL_PORT:26379}
+
+# API Configuration
+api:
+  host: ${API_HOST:0.0.0.0}
+  port: ${API_PORT:8000}
+  workers: ${API_WORKERS:4}
+  worker_class: uvicorn.workers.UvicornWorker
+  loop: uvloop
+  http: httptools
+  reload: ${API_RELOAD:false}
+  access_log: ${API_ACCESS_LOG:true}
+  use_colors: ${API_USE_COLORS:true}
+  log_level: ${API_LOG_LEVEL:info}
+  log_config: ${API_LOG_CONFIG}
+  
+  # CORS Configuration
+  cors:
+    allow_origins: ${CORS_ORIGINS:*}
+    allow_credentials: ${CORS_CREDENTIALS:true}
+    allow_methods: ${CORS_METHODS:*}
+    allow_headers: ${CORS_HEADERS:*}
+    expose_headers: ${CORS_EXPOSE_HEADERS:*}
+    max_age: ${CORS_MAX_AGE:600}
+  
+  # Rate Limiting
+  rate_limiting:
+    enabled: ${RATE_LIMITING_ENABLED:true}
+    redis_url: ${REDIS_URL:redis://localhost:6379}
+    default_limits:
+      per_minute: ${RATE_LIMIT_PER_MINUTE:100}
+      per_hour: ${RATE_LIMIT_PER_HOUR:1000}
+      per_day: ${RATE_LIMIT_PER_DAY:10000}
+    endpoint_limits:
+      /api/v1/minerals:
+        per_minute: 200
+        per_hour: 2000
+      /api/v1/transactions:
+        per_minute: 50
+        per_hour: 500
+      /api/v1/market/stats:
+        per_minute: 30
+        per_hour: 300
+
+# Caching Configuration
+cache:
+  redis:
+    url: ${REDIS_URL:redis://localhost:6379}
+    default_ttl: ${CACHE_DEFAULT_TTL:300}
+    max_connections: ${CACHE_MAX_CONNECTIONS:20}
+    key_prefix: ${CACHE_KEY_PREFIX:worldmine}
+    compression: ${CACHE_COMPRESSION:true}
+    serialization: pickle
+  
+  layers:
+    l1_memory:
+      enabled: ${CACHE_L1_ENABLED:true}
+      max_size: ${CACHE_L1_MAX_SIZE:100MB}
+      ttl: ${CACHE_L1_TTL:60}
+    
+    l2_redis:
+      enabled: ${CACHE_L2_ENABLED:true}
+      max_size: ${CACHE_L2_MAX_SIZE:1GB}
+      ttl: ${CACHE_L2_TTL:300}
+    
+    l3_database:
+      enabled: ${CACHE_L3_ENABLED:false}
+      max_size: ${CACHE_L3_MAX_SIZE:10GB}
+      ttl: ${CACHE_L3_TTL:3600}
+
+# Security Configuration
+security:
+  # JWT Configuration
+  jwt:
+    secret_key: ${JWT_SECRET_KEY}
+    algorithm: ${JWT_ALGORITHM:HS256}
+    access_token_expire_minutes: ${JWT_ACCESS_TOKEN_EXPIRE:30}
+    refresh_token_expire_days: ${JWT_REFRESH_TOKEN_EXPIRE:7}
+    issuer: ${JWT_ISSUER:worldmine}
+    audience: ${JWT_AUDIENCE:worldmine-users}
+  
+  # Encryption
+  encryption:
+    algorithm: ${ENCRYPTION_ALGORITHM:AES-256-GCM}
+    key_size: ${ENCRYPTION_KEY_SIZE:256}
+    iv_size: ${ENCRYPTION_IV_SIZE:12}
+    tag_size: ${ENCRYPTION_TAG_SIZE:16}
+    key_derivation:
+      algorithm: ${KDF_ALGORITHM:PBKDF2}
+      iterations: ${KDF_ITERATIONS:100000}
+      salt_size: ${KDF_SALT_SIZE:32}
+  
+  # SSL/TLS
+  ssl:
+    enabled: ${SSL_ENABLED:true}
+    cert_file: ${SSL_CERT_FILE}
+    key_file: ${SSL_KEY_FILE}
+    ca_file: ${SSL_CA_FILE}
+    verify_mode: ${SSL_VERIFY_MODE:required}
+    min_version: ${SSL_MIN_VERSION:TLSv1.2}
+    ciphers: ${SSL_CIPHERS:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256}
+  
+  # Headers
+  headers:
+    x_frame_options: DENY
+    x_content_type_options: nosniff
+    x_xss_protection: "1; mode=block"
+    strict_transport_security: "max-age=31536000; includeSubDomains; preload"
+    content_security_policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"
+    referrer_policy: strict-origin-when-cross-origin
+    permissions_policy: "geolocation=(), microphone=(), camera=()"
+
+# Monitoring Configuration
+monitoring:
+  # Metrics
+  metrics:
+    enabled: ${METRICS_ENABLED:true}
+    port: ${METRICS_PORT:9090}
+    path: ${METRICS_PATH:/metrics}
+    collectors:
+      - http_requests
+      - http_request_duration
+      - database_connections
+      - cache_operations
+      - error_rates
+      - business_metrics
+  
+  # Logging
+  logging:
+    level: ${LOG_LEVEL:INFO}
+    format: ${LOG_FORMAT:json}
+    output: ${LOG_OUTPUT:stdout}
+    file:
+      enabled: ${LOG_FILE_ENABLED:false}
+      path: ${LOG_FILE_PATH:/var/log/worldmine/app.log}
+      max_size: ${LOG_FILE_MAX_SIZE:100MB}
+      backup_count: ${LOG_FILE_BACKUP_COUNT:5}
+      rotation: ${LOG_FILE_ROTATION:daily}
+    structured:
+      enabled: ${LOG_STRUCTURED_ENABLED:true}
+      fields:
+        - timestamp
+        - level
+        - message
+        - module
+        - function
+        - line
+        - request_id
+        - user_id
+        - correlation_id
+  
+  # Health Checks
+  health_checks:
+    enabled: ${HEALTH_CHECKS_ENABLED:true}
+    port: ${HEALTH_CHECKS_PORT:8080}
+    path: ${HEALTH_CHECKS_PATH:/health}
+    checks:
+      database:
+        enabled: true
+        timeout: 5
+        interval: 30
+      redis:
+        enabled: true
+        timeout: 3
+        interval: 30
+      external_apis:
+        enabled: true
+        timeout: 10
+        interval: 60
+        urls:
+          - https://api.example.com/health
+          - https://payment-api.example.com/health
+
+# Performance Configuration
+performance:
+  # Connection Pooling
+  connection_pooling:
+    database:
+      enabled: true
+      min_size: 5
+      max_size: 20
+      overflow: 10
+      timeout: 30
+      recycle: 3600
+    redis:
+      enabled: true
+      max_connections: 20
+      timeout: 5
+      retry_on_timeout: true
+  
+  # Query Optimization
+  query_optimization:
+    prepared_statements: true
+    connection_reuse: true
+    batch_size: 1000
+    query_timeout: 30
+    slow_query_threshold: 1.0
+    explain_analyze: false
+  
+  # Caching Strategy
+  caching:
+    strategy: ${CACHE_STRATEGY:write_through}
+    invalidation:
+      ttl: 300
+      max_size: 10000
+      cleanup_interval: 60
+    compression:
+      enabled: true
+      algorithm: gzip
+      level: 6
+  
+  # Background Tasks
+  background_tasks:
+    enabled: true
+    workers: ${BACKGROUND_TASKS_WORKERS:4}
+    queue_size: ${BACKGROUND_TASKS_QUEUE_SIZE:1000}
+    max_retries: ${BACKGROUND_TASKS_MAX_RETRIES:3}
+    retry_delay: ${BACKGROUND_TASKS_RETRY_DELAY:5}
+    task_timeout: ${BACKGROUND_TASKS_TIMEOUT:300}
+
+# Scaling Configuration
+scaling:
+  # Auto-scaling
+  auto_scaling:
+    enabled: ${AUTO_SCALING_ENABLED:true}
+    min_instances: ${AUTO_SCALING_MIN:1}
+    max_instances: ${AUTO_SCALING_MAX:10}
+    target_cpu: ${AUTO_SCALING_TARGET_CPU:70}
+    target_memory: ${AUTO_SCALING_TARGET_MEMORY:80}
+    scale_up_cooldown: ${AUTO_SCALING_UP_COOLDOWN:300}
+    scale_down_cooldown: ${AUTO_SCALING_DOWN_COOLDOWN:600}
+    
+  # Load Balancing
+  load_balancing:
+    algorithm: ${LOAD_BALANCING_ALGORITHM:round_robin}
+    health_check_interval: ${LOAD_BALANCING_HEALTH_CHECK:30}
+    health_check_timeout: ${LOAD_BALANCING_HEALTH_TIMEOUT:5}
+    session_affinity: ${LOAD_BALANCING_SESSION_AFFINITY:true}
+    sticky_sessions: ${LOAD_BALANCING_STICKY_SESSIONS:true}
+    
+  # CDN
+  cdn:
+    enabled: ${CDN_ENABLED:true}
+    provider: ${CDN_PROVIDER:cloudflare}
+    domain: ${CDN_DOMAIN:cdn.worldmine.com}
+    cache_ttl: ${CDN_CACHE_TTL:3600}
+    compression: ${CDN_COMPRESSION:true}
+    minify: ${CDN_MINIFY:true}
+
+# Deployment Configuration
+deployment:
+  # Environment
+  environment: ${DEPLOYMENT_ENVIRONMENT:production}
+  region: ${DEPLOYMENT_REGION:us-west-2}
+  availability_zones:
+    - ${DEPLOYMENT_REGION:us-west-2a}
+    - ${DEPLOYMENT_REGION:us-west-2b}
+    - ${DEPLOYMENT_REGION:us-west-2c}
+  
+  # Containers
+  containers:
+    app:
+      image: ${APP_IMAGE:worldmine/app:2035.0.0}
+      replicas: ${APP_REPLICAS:3}
+      resources:
+        requests:
+          cpu: ${APP_CPU_REQUEST:250m}
+          memory: ${APP_MEMORY_REQUEST:512Mi}
+        limits:
+          cpu: ${APP_CPU_LIMIT:1000m}
+          memory: ${APP_MEMORY_LIMIT:2Gi}
+      health_check:
+        path: /health
+        port: 8000
+        interval: 30
+        timeout: 10
+        failure_threshold: 3
+        success_threshold: 2
+    
+    worker:
+      image: ${WORKER_IMAGE:worldmine/worker:2035.0.0}
+      replicas: ${WORKER_REPLICAS:2}
+      resources:
+        requests:
+          cpu: ${WORKER_CPU_REQUEST:500m}
+          memory: ${WORKER_MEMORY_REQUEST:1Gi}
+        limits:
+          cpu: ${WORKER_CPU_LIMIT:2000m}
+          memory: ${WORKER_MEMORY_LIMIT:4Gi}
+  
+  # Storage
+  storage:
+    database:
+      type: ${DB_STORAGE_TYPE:ssd}
+      size: ${DB_STORAGE_SIZE:100Gi}
+      iops: ${DB_STORAGE_IOPS:3000}
+      throughput: ${DB_STORAGE_THROUGHPUT:125}
+    
+    cache:
+      type: ${CACHE_STORAGE_TYPE:memory}
+      size: ${CACHE_STORAGE_SIZE:10Gi}
+    
+    logs:
+      type: ${LOGS_STORAGE_TYPE:standard}
+      size: ${LOGS_STORAGE_SIZE:50Gi}
+      retention: ${LOGS_STORAGE_RETENTION:30}
+
+# Feature Flags
+features:
+  # API Features
+  api:
+    v2_enabled: ${API_V2_ENABLED:false}
+    graphql_enabled: ${API_GRAPHQL_ENABLED:false}
+    websocket_enabled: ${API_WEBSOCKET_ENABLED:true}
+    file_upload_enabled: ${API_FILE_UPLOAD_ENABLED:true}
+    bulk_operations_enabled: ${API_BULK_OPERATIONS_ENABLED:true}
+  
+  # Business Features
+  business:
+    real_time_pricing: ${BUSINESS_REAL_TIME_PRICING:true}
+    advanced_analytics: ${BUSINESS_ADVANCED_ANALYTICS:true}
+    ai_recommendations: ${BUSINESS_AI_RECOMMENDATIONS:true}
+    multi_currency: ${BUSINESS_MULTI_CURRENCY:true}
+    international_shipping: ${BUSINESS_INTERNATIONAL_SHIPPING:true}
+  
+  # Security Features
+  security:
+    mfa_required: ${SECURITY_MFA_REQUIRED:false}
+    ip_whitelist_enabled: ${SECURITY_IP_WHITELIST_ENABLED:false}
+    session_timeout: ${SECURITY_SESSION_TIMEOUT:3600}
+    password_policy:
+      min_length: ${SECURITY_PASSWORD_MIN_LENGTH:8}
+      require_uppercase: ${SECURITY_PASSWORD_REQUIRE_UPPERCASE:true}
+      require_lowercase: ${SECURITY_PASSWORD_REQUIRE_LOWERCASE:true}
+      require_numbers: ${SECURITY_PASSWORD_REQUIRE_NUMBERS:true}
+      require_symbols: ${SECURITY_PASSWORD_REQUIRE_SYMBOLS:false}
+      prevent_reuse: ${SECURITY_PASSWORD_PREVENT_REUSE:true}
+      history_count: ${SECURITY_PASSWORD_HISTORY_COUNT:5}
+
+# Development Configuration
+development:
+  # Debug
+  debug:
+    enabled: ${DEBUG_ENABLED:false}
+    profiling: ${DEBUG_PROFILING:false}
+    sql_debug: ${DEBUG_SQL:false}
+    request_debug: ${DEBUG_REQUEST:false}
+  
+  # Testing
+  testing:
+    enabled: ${TESTING_ENABLED:false}
+    mock_external_apis: ${TESTING_MOCK_APIS:false}
+    test_database: ${TESTING_DATABASE:worldmine_test}
+    test_redis: ${TESTING_REDIS:redis://localhost:6380}
+  
+  # Hot Reload
+  hot_reload:
+    enabled: ${HOT_RELOAD_ENABLED:false}
+    watch_paths:
+      - ./src
+      - ./web-client/src
+    ignore_paths:
+      - ./node_modules
+      - ./__pycache__
+      - ./dist
+
+# Production Optimizations
+production:
+  # Performance
+  performance:
+    gzip_compression: true
+    brotli_compression: true
+    static_file_caching: true
+    api_response_caching: true
+    database_query_caching: true
+    connection_pooling: true
+    async_processing: true
+  
+  # Security
+  security:
+    ssl_only: true
+    hsts_enabled: true
+    csrf_protection: true
+    xss_protection: true
+    sql_injection_protection: true
+    rate_limiting: true
+    input_validation: true
+    output_encoding: true
+  
+  # Monitoring
+  monitoring:
+    application_performance_monitoring: true
+    error_tracking: true
+    log_aggregation: true
+    metrics_collection: true
+    health_checks: true
+    alerting: true
+    uptime_monitoring: true
