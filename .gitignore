@@ -155,3 +155,6 @@ ssl/
 *.bak
 *.backup
 *.old
+
+# Infrastructure secrets
+infrastructure/

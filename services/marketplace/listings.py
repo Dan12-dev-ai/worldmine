@@ -4,15 +4,16 @@ Handles auctions, Buy-It-Now, and basic marketplace functionality
 """
 
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, desc, asc
+from sqlalchemy import and_, or_, desc, asc, func
 
 from models import Listing, User, Auction, BuyItNowTransaction
 from database import get_db
-from services.security import quantum_sign_data
+from services.messaging.event_bus import event_bus
+from services.security.quantumEncryption import QuantumSecureData
 
 class ListingService:
     """Core marketplace service with competitor strengths + future-tech integration"""
@@ -293,23 +294,37 @@ class ListingService:
                 created_at=datetime.now(timezone.utc)
             )
             
-            # Deactivate listing
+            # Deactivate listing immediately and persist transaction intent
             listing.is_active = False
             listing.updated_at = datetime.now(timezone.utc)
-            
             self.db.add(transaction)
             self.db.commit()
+            
+            payment_intent = {
+                "trace_id": str(uuid.uuid4()),
+                "listing_id": listing_id,
+                "transaction_id": transaction.id,
+                "buyer_id": buyer_id,
+                "seller_id": listing.seller_id,
+                "amount": listing.buy_it_now_price,
+                "currency": "USD",
+                "payment_method": payment_method,
+                "commission_amount": commission_amount,
+                "seller_payout": seller_payout
+            }
+            await event_bus.publish("payment.requested", payment_intent)
             
             return {
                 "success": True,
                 "transaction_id": transaction.id,
-                "message": "Purchase successful",
+                "message": "Payment request emitted",
                 "price": listing.buy_it_now_price,
                 "commission": {
                     "rate": f"{commission_rate}%",
                     "amount": commission_amount,
                     "seller_payout": seller_payout
-                }
+                },
+                "payment_status": "pending"
             }
             
         except HTTPException:
@@ -330,7 +345,7 @@ class ListingService:
             "weight": listing.weight,
             "unit": listing.unit,
             "price": listing.price,
-            "price_per_unit": listing.price / listing.weight,
+            "price_per_unit": listing.price / listing.weight if listing.weight and listing.weight > 0 else None,
             "listing_type": listing.listing_type,
             "images": listing.images,
             "created_at": listing.created_at.isoformat(),
@@ -379,23 +394,21 @@ class ListingService:
     
     async def _setup_traceability(self, listing_id: str) -> None:
         """Setup traceability for listing (future feature)"""
-        # This would integrate with IoT sensors, GPS, satellite
-        pass
+        await event_bus.publish("traceability.setup.requested", {"listing_id": listing_id})
     
     async def _enable_video_negotiation(self, listing_id: str) -> None:
         """Enable video negotiation for listing (future feature)"""
-        # This would setup WebRTC infrastructure
-        pass
+        await event_bus.publish("video.negotiation.enabled", {"listing_id": listing_id})
     
     async def _configure_ai_agent(self, listing_id: str, seller_id: str) -> None:
         """Configure AI agent for listing (future feature)"""
-        # This would setup autonomous trading agent
-        pass
+        await event_bus.publish("ai.agent.configure", {"listing_id": listing_id, "seller_id": seller_id})
     
     async def _verify_quantum_signature(self, signature: str, user_id: str, data: Any) -> bool:
         """Verify quantum-resistant signature"""
-        # Implement quantum signature verification
-        return await quantum_sign_data.verify_signature(signature, user_id, data)
+        quantum = QuantumSecureData()
+        result = await quantum.verify_signature(data=str(data), signature=signature, public_key=user_id)
+        return bool(result.get("success", False) and result.get("signature_valid", False))
     
     def _get_traceability_score(self, listing_id: str) -> Optional[float]:
         """Get traceability score for listing"""

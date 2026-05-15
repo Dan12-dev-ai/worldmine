@@ -1,0 +1,25 @@
+Starting comprehensive alerting system tests...
+Testing alert rules configuration...
+Testing notification channels configuration...
+Testing escalation procedures...
+Testing alert suppression and deduplication...
+Testing incident management integration...
+Alerting System Test Results:
+==================================================
+Alert Rules: ✅ PASS
+  Score: 92.0
+
+Notification Channels: ✅ PASS
+  Score: 97.4
+
+Escalation Procedures: ❌ FAIL
+  Score: 61.6
+
+Alert Suppression: ✅ PASS
+  Score: 91.2
+
+Incident Management: ❌ FAIL
+  Error: 'status_updates'
+
+Overall Alerting System Score: 85.5/100
+Overall Result: ❌ FAIL

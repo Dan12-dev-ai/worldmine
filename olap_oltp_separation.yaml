@@ -1,0 +1,226 @@
+# ========================================
+# OLAP/OLTP SEPARATION ARCHITECTURE
+# DEDAN WORLDMINE PLATFORM - PRODUCTION READY
+# Target Score: 9.5+/10
+# ========================================
+
+version: '3.8'
+
+services:
+  # ========================================
+  # OLTP DATABASE (PostgreSQL - Production)
+  # ========================================
+  postgres-oltp:
+    image: postgres:15-alpine
+    container_name: dedan-postgres-oltp
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dedanmine}
+      POSTGRES_USER: ${POSTGRES_USER:-neondb_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_REPLICATION_USER: ${POSTGRES_REPLICATION_USER:-replicator}
+      POSTGRES_REPLICATION_PASSWORD: ${POSTGRES_REPLICATION_PASSWORD}
+    volumes:
+      - postgres_oltp_data:/var/lib/postgresql/data
+      - ./postgresql-oltp.conf:/etc/postgresql/postgresql.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    ports:
+      - "5432:5432"
+    networks:
+      - dedan-network
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+
+  # ========================================
+  # DEBEZIUM CONNECTOR (CDC)
+  # ========================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: dedan-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - dedan-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: dedan-kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9997
+      KAFKA_JMX_HOSTNAME: localhost
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - dedan-network
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.0
+    container_name: dedan-schema-registry
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - dedan-network
+
+  kafka-connect:
+    image: debezium/connect:2.4
+    container_name: dedan-kafka-connect
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: dedan-connect-group
+      CONFIG_STORAGE_TOPIC: dedan_connect_configs
+      OFFSET_STORAGE_TOPIC: dedan_connect_offsets
+      STATUS_STORAGE_TOPIC: dedan_connect_statuses
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    volumes:
+      - ./kafka-connect-plugins:/kafka/connect
+      - ./debezium-connector-config:/etc/debezium
+    networks:
+      - dedan-network
+
+  # ========================================
+  # OLAP DATA WAREHOUSE (BigQuery Connector)
+  # ========================================
+  bigquery-connector:
+    image: confluentinc/cp-kafka-connect-base:7.4.0
+    container_name: dedan-bigquery-connector
+    restart: unless-stopped
+    depends_on:
+      - kafka
+      - schema-registry
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_GROUP_ID: dedan-bigquery-connector
+      CONNECT_CONFIG_STORAGE_TOPIC: dedan_bigquery_configs
+      CONNECT_OFFSET_STORAGE_TOPIC: dedan_bigquery_offsets
+      CONNECT_STATUS_STORAGE_TOPIC: dedan_bigquery_statuses
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_PLUGIN_PATH: /usr/share/java,/data/connect-jars
+      GOOGLE_APPLICATION_CREDENTIALS: /etc/gcp/credentials.json
+    volumes:
+      - ./gcp-credentials:/etc/gcp
+      - ./bigquery-connector-config:/etc/bigquery
+    networks:
+      - dedan-network
+
+  # ========================================
+  # REDIS CACHING LAYER
+  # ========================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: dedan-redis-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    networks:
+      - dedan-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # MONITORING & OBSERVABILITY
+  # ========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: dedan-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - dedan-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: dedan-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana-datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - dedan-network
+
+  # ========================================
+  # API GATEWAY (Load Balancer)
+  # ========================================
+  nginx:
+    image: nginx:alpine
+    container_name: dedan-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl-certs:/etc/nginx/ssl
+    depends_on:
+      - postgres-oltp
+    networks:
+      - dedan-network
+
+volumes:
+  postgres_oltp_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  kafka_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  dedan-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

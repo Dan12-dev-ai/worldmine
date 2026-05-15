@@ -1,0 +1,1531 @@
+"""
+🔐 DEDAN 2.0 - Enterprise-Grade OpenAPI Specification
+Complete API documentation with TypeScript types, security, and examples
+World-class API design following industry standards
+"""
+
+openapi: 3.0.0
+info:
+  title: "DEDAN 2.0 - World-Class Mineral Trading Platform"
+  description: "Enterprise-grade API for quantum-secured mineral trading with AI-powered automation"
+  version: "2.0.0"
+  contact:
+    name: "DEDAN 2.0 API Team"
+    email: "api@dedan2.com"
+    url: "https://dedan2.com/api/docs"
+  license:
+    name: "MIT"
+    url: "https://dedan2.com/license"
+  termsOfService: "https://dedan2.com/terms"
+  x-logo: "https://dedan2.com/logo.png"
+  x-api-key: "API Key Required"
+  x-rate-limit:
+    requests-per-minute: 1000
+    requests-per-hour: 50000
+    requests-per-day: 1000000
+
+servers:
+  - url: "https://api.dedan2.com/v1"
+    description: "Production API"
+  - url: "https://staging-api.dedan2.com/v1"
+    description: "Staging API"
+  - url: "https://dev-api.dedan2.com/v1"
+    description: "Development API"
+
+security:
+  - BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT authentication token required for all endpoints"
+  - ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: "X-API-Key"
+      description: "API key authentication for service-to-service communication"
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: "Register new user with <3 minute process"
+      description: "Complete user registration with AI-powered KYC preparation. Supports social login, magic link authentication, and enterprise-grade security."
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistrationRequest"
+      responses:
+        "201":
+          description: "User registered successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: "Registration failed - validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "User already exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login/magic-link:
+    post:
+      tags:
+        - Authentication
+      summary: "Request magic link for instant login"
+      description: "Generate and send magic link for passwordless authentication. Link expires in 15 minutes for security."
+      operationId: requestMagicLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MagicLinkRequest"
+      responses:
+        "200":
+          description: "Magic link sent successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Magic link sent! Check your email for instant access."
+                  email:
+                    type: string
+                    example: "user@example.com"
+                  expires_in_minutes:
+                    type: integer
+                    example: 15
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify:
+    get:
+      tags:
+        - Authentication
+      summary: "Verify magic link and auto-login"
+      description: "Verify magic link token and automatically authenticate user. Provides JWT tokens for immediate access."
+      operationId: verifyMagicLink
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: "Magic link verification token"
+      responses:
+        "200":
+          description: "Authentication successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: "Invalid or expired token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: "Traditional login with email and password"
+      description: "Authenticate user with email and password credentials. Returns JWT tokens for session management."
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: "Login successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: "Invalid credentials"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "Account inactive or not verified"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: "Refresh JWT access token"
+      description: "Refresh access token using refresh token. Extends session without requiring re-authentication."
+      operationId: refreshToken
+      security:
+        - BearerAuth:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  description: "Valid refresh token"
+              grant_type:
+                  type: string
+                  enum: [refresh_token]
+                  default: refresh_token
+      responses:
+        "200":
+          description: "Token refreshed successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: "Invalid or expired refresh token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: "Logout user and invalidate tokens"
+      description: "Logout user and invalidate current JWT tokens. Tokens are blacklisted to prevent reuse."
+      security:
+        - BearerAuth:
+      responses:
+        "200":
+          description: "Logout successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        "401":
+          description: "Invalid token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: "Get current user profile"
+      description: "Retrieve current user profile information including KYC status and account details."
+      security:
+        - BearerAuth:
+      responses:
+        "200":
+          description: "User profile retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: "Invalid or expired token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/check-password-strength:
+    post:
+      tags:
+        - Authentication
+      summary: "Check password strength in real-time"
+      description: "Validate password strength with enterprise-grade criteria. Provides detailed feedback for security requirements."
+      operationId: checkPasswordStrength
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  description: "Password to validate"
+      responses:
+        "200":
+          description: "Password strength analysis"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PasswordStrength"
+        "500":
+          description: "Validation error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /kyc/upload-document:
+    post:
+      tags:
+        - KYC
+      summary: "Upload KYC document with AI validation"
+      description: "Upload identity documents for AI-powered verification. Includes real-time validation, blur detection, edge detection, and quality assessment."
+      operationId: uploadKYCDocument
+      security:
+        - BearerAuth:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                document_type:
+                  type: string
+                  enum: [passport, id_card, driver_license, proof_of_address]
+                  description: "Type of document being uploaded"
+                front_image:
+                  type: string
+                  format: base64
+                  description: "Front side of document (base64 encoded)"
+                back_image:
+                  type: string
+                  format: base64
+                  description: "Back side of document (base64 encoded)"
+                selfie_image:
+                  type: string
+                  format: base64
+                  description: "Selfie for facial recognition (base64 encoded)"
+      responses:
+        "200":
+          description: "Document uploaded and validated successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  verification_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655540000"
+                  document_id:
+                    type: string
+                    format: uuid
+                    example: "doc_123e4567-89ab-cdef-0123456789"
+                  document_validity:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    example: 0.95
+                  validation_issues:
+                    type: array
+                    items:
+                      type: string
+                      example: ["Document appears blurry"]
+                  processing_time_ms:
+                    type: integer
+                    example: 1500
+                  message:
+                    type: string
+                    example: "Document uploaded and validated successfully"
+        "400":
+          description: "Document validation failed"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /kyc/facial-recognition:
+    post:
+      tags:
+        - KYC
+      summary: "Perform facial recognition with liveness detection"
+      description: "Advanced facial recognition with liveness detection to prevent photo spoofing. Includes face matching, motion analysis, and biometric verification."
+      operationId: performFacialRecognition
+      security:
+        - BearerAuth:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FaceRecognitionRequest"
+      responses:
+        "200":
+          description: "Facial recognition completed successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KYCResult"
+        "400":
+          description: "Facial recognition failed"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /kyc/status/{verification_id}:
+    get:
+      tags:
+        - KYC
+      summary: "Get KYC verification status"
+      description: "Retrieve KYC verification status and results. Includes processing time, approval status, and detailed feedback."
+      operationId: getKYCStatus
+      security:
+        - BearerAuth:
+      parameters:
+        - name: verification_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: "KYC verification ID"
+      responses:
+        "200":
+          description: "KYC status retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [pending, processing, approved, rejected, manual_review]
+                    example: "approved"
+                  confidence:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    example: 0.973
+                  match_score:
+                    type: number
+                    example: 0.973
+                  risk_score:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                    example: 0.15
+                  processing_time_ms:
+                    type: integer
+                    example: 2500
+                  verification_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655540000"
+                  kyc_level:
+                    type: string
+                    enum: [none, basic, standard, enhanced, full]
+                    example: "full"
+                  approval_timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-03-15T14:30:00Z"
+                  rejection_reason:
+                    type: string
+                    example: null
+        "404":
+          description: "Verification not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /kyc/retry:
+    post:
+      tags:
+        - KYC
+      summary: "Retry KYC verification for manual review cases"
+      description: "Retry KYC verification for cases requiring manual review. Re-processes documents with updated AI models."
+      operationId: retryKYC
+      security:
+        - BearerAuth:
+      responses:
+        "200":
+          description: "KYC retry initiated successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "KYC reset to pending. Please upload new documents."
+                  user_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655540000"
+        "400":
+          description: "Not eligible for retry"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /kyc/documents:
+    get:
+      tags:
+        - KYC
+      summary: "Get user's uploaded KYC documents"
+      description: "Retrieve all uploaded KYC documents with validation results and processing status."
+      operationId: getUserKYCDocuments
+      security:
+        - BearerAuth:
+      responses:
+        "200":
+          description: "Documents retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KYCDocument"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/orders:
+    post:
+      tags:
+        - Trading
+      summary: "Create trading order with sub-100ms execution"
+      description: "Create trading order with instant matching and quantum settlement. Supports multiple order types and advanced risk management."
+      operationId: createOrder
+      security:
+        - BearerAuth:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderRequest"
+      responses:
+        "200":
+          description: "Order created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          description: "Order validation failed"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/orders:
+    get:
+      tags:
+        - Trading
+      summary: "Get user's open orders"
+      description: "Retrieve all open orders with real-time status and cancellation options."
+      operationId: getOpenOrders
+      security:
+        - BearerAuth:
+      responses:
+        "200":
+          description: "Open orders retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenOrder"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/orders/{order_id}:
+    delete:
+      tags:
+        - Trading
+      summary: "Cancel open order"
+      description: "Cancel open order with instant removal from order book. Supports partial cancellation and refund calculation."
+      operationId: cancelOrder
+      security:
+        - BearerAuth:
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            description: "Order ID to cancel"
+      responses:
+        "200":
+          description: "Order cancelled successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Order cancelled successfully"
+                  order_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655540000"
+        "404":
+          description: "Order not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/market-data/{mineral_id}:
+    get:
+      tags:
+        - Trading
+      summary: "Get real-time market data"
+      description: "Retrieve real-time market data including current price, 24h volume, bid/ask spread, and price changes."
+      operationId: getMarketData
+      security:
+        - BearerAuth:
+      parameters:
+        - name: mineral_id
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [gold, silver, copper, lithium, rare_earth]
+            description: "Mineral identifier"
+      responses:
+        "200":
+          description: "Market data retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketData"
+        "404":
+          description: "Mineral not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/order-book/{mineral_id}:
+    get:
+      tags:
+        - Trading
+      summary: "Get order book for specific mineral"
+      description: "Retrieve complete order book with aggregated orders, market depth, and spread analysis."
+      operationId: getOrderBook
+      security:
+        - BearerAuth:
+      parameters:
+        - name: mineral_id
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [gold, silver, copper, lithium, rare_earth]
+            description: "Mineral identifier"
+      responses:
+        "200":
+          description: "Order book retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderBook"
+        "404":
+          description: "Mineral not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/trades:
+    get:
+      tags:
+        - Trading
+      summary: "Get recent trades with performance metrics"
+      description: "Retrieve recent trades with execution details, P&L calculations, and performance analytics."
+      operationId: getRecentTrades
+      security:
+        - BearerAuth:
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+            description: "Number of trades to retrieve"
+      responses:
+        "200":
+          description: "Trades retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradeExecution"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trading/performance:
+    get:
+      tags:
+        - Trading
+      summary: "Get trading performance metrics"
+      description: "Retrieve comprehensive trading performance metrics including P&L, Sharpe ratio, win rate, and risk analysis."
+      operationId: getTradingPerformance
+      security:
+        - BearerAuth:
+      responses:
+        "200":
+          description: "Performance metrics retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradingPerformance"
+        "401":
+          description: "Unauthorized"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    UserRegistrationRequest:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+        - accept_terms
+        - accept_privacy
+      properties:
+        email:
+          type: string
+          format: email
+          description: "User email address"
+          example: "john.doe@example.com"
+        password:
+          type: string
+          minLength: 16
+          description: "Password (min 16 characters with uppercase, lowercase, numbers, and special characters)"
+          example: "SecureP@ssword123!"
+        first_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: "First name"
+          example: "John"
+        last_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: "Last name"
+          example: "Doe"
+        phone:
+          type: string
+          description: "Phone number with country code"
+          example: "+1-555-123-4567"
+        referral_code:
+          type: string
+          description: "Optional referral code for rewards"
+          example: "REF123ABC"
+        newsletter_opt_in:
+          type: boolean
+          description: "Subscribe to newsletter"
+          default: false
+          example: false
+        accept_terms:
+          type: boolean
+          description: "Accept terms of service"
+          example: true
+        accept_privacy:
+          type: boolean
+          description: "Accept privacy policy"
+          example: true
+
+    MagicLinkRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: "User email address"
+          example: "john.doe@example.com"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: "User email address"
+          example: "john.doe@example.com"
+        password:
+          type: string
+          description: "User password"
+          example: "SecureP@ssword123!"
+
+    PasswordStrength:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: "Password strength score (0-100)"
+          example: 85
+        level:
+          type: string
+          enum: [weak, fair, good, strong]
+          description: "Password strength level"
+          example: "strong"
+        feedback:
+          type: array
+          items:
+            type: string
+          description: "Detailed feedback for improvement"
+          example: ["Password meets all strength requirements"]
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: "JWT access token"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0MTI3NCIsImV4cCI6MTAwJ9.eyJleHAiOjE2MjAwMDAifQ"
+        refresh_token:
+          type: string
+          description: "JWT refresh token"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0MTI3NCIsImV4cCI6MTAwJ9.eyJleHAiOjE2MjAwMDAifQ"
+        token_type:
+          type: string
+          description: "Token type"
+          example: "bearer"
+        expires_in:
+          type: integer
+          description: "Token expiration time in seconds"
+          example: 86400
+        user:
+          $ref: "#/components/schemas/UserResponse"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "User ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        email:
+          type: string
+          format: email
+          description: "User email"
+          example: "john.doe@example.com"
+        first_name:
+          type: string
+          description: "First name"
+          example: "John"
+        last_name:
+          type: string
+          description: "Last name"
+          example: "Doe"
+        kyc_status:
+          type: string
+          enum: [not_started, pending, in_review, approved, rejected]
+          description: "KYC verification status"
+          example: "approved"
+        kyc_level:
+          type: string
+          enum: [none, basic, standard, enhanced, full]
+          description: "KYC verification level"
+          example: "full"
+        is_verified:
+          type: boolean
+          description: "Email verification status"
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          description: "Account creation timestamp"
+          example: "2024-01-15T10:30:00Z"
+        last_login:
+          type: string
+          format: date-time
+          description: "Last login timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: "Error type"
+          example: "ValidationError"
+        message:
+          type: string
+          description: "Detailed error message"
+          example: "Password must be at least 16 characters long"
+        details:
+          type: object
+          description: "Additional error details"
+          example:
+            field: "password"
+            code: "PASSWORD_TOO_SHORT"
+            constraint: "minLength=16"
+
+    KYCDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: "Document ID"
+          example: "doc_123e4567-89ab-cdef-0123456789"
+        user_id:
+          type: string
+          format: uuid
+          description: "User ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        verification_id:
+          type: string
+          format: uuid
+          description: "Verification ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        document_type:
+          type: string
+          enum: [passport, id_card, driver_license, proof_of_address]
+          description: "Document type"
+          example: "passport"
+        front_validation:
+          type: object
+          properties:
+            valid:
+              type: boolean
+              description: "Document validity status"
+              example: true
+            issues:
+              type: array
+              items:
+                type: string
+              description: "Validation issues"
+              example: []
+            blur_score:
+              type: number
+              description: "Blur detection score (0-1)"
+              example: 0.15
+            glare_score:
+              type: number
+              description: "Glare detection score (0-1)"
+              example: 0.25
+        status:
+          type: string
+          enum: [uploaded, processing, approved, rejected]
+          description: "Document status"
+          example: "uploaded"
+        document_validity:
+          type: number
+          description: "Overall document validity score (0-1)"
+          example: 0.95
+        created_at:
+          type: string
+          format: date-time
+          description: "Upload timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    FaceRecognitionRequest:
+      type: object
+      required:
+        - user_id
+        - selfie_image
+        - document_face
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: "User ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        selfie_image:
+          type: string
+          format: base64
+          description: "Selfie image for facial recognition (base64 encoded)"
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+        document_face:
+          type: string
+          format: base64
+          description: "Face from ID document (base64 encoded)"
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
+
+    KYCResult:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, processing, approved, rejected, manual_review]
+          description: "KYC verification status"
+          example: "approved"
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "Verification confidence score (0-1)"
+          example: 0.973
+        match_score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "Face match score (0-1)"
+          example: 0.973
+        risk_score:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "Overall risk score (0-1)"
+          example: 0.15
+        processing_time_ms:
+          type: integer
+          description: "Processing time in milliseconds"
+          example: 2500
+        verification_id:
+          type: string
+          format: uuid
+          description: "Verification ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        kyc_level:
+          type: string
+          enum: [none, basic, standard, enhanced, full]
+          description: "KYC level achieved"
+          example: "full"
+        approval_timestamp:
+          type: string
+          format: date-time
+          description: "Approval timestamp"
+          example: "2024-03-15T14:30:00Z"
+        rejection_reason:
+          type: string
+          description: "Rejection reason if applicable"
+          example: null
+
+    OrderRequest:
+      type: object
+      required:
+        - mineral_id
+        - side
+        - amount
+        - order_type
+      properties:
+        mineral_id:
+          type: string
+          enum: [gold, silver, copper, lithium, rare_earth]
+          description: "Mineral identifier"
+          example: "gold"
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order side"
+          example: "buy"
+        order_type:
+          type: string
+          enum: [market, limit, stop_loss, stop_limit, iceberg]
+          description: "Order type"
+          example: "limit"
+        amount:
+          type: number
+          minimum: 0.001
+          maximum: 1000000
+          description: "Order amount"
+          example: 1000
+        price:
+          type: number
+          description: "Order price (for limit orders)"
+          example: 2001.50
+        stop_price:
+          type: number
+          description: "Stop price (for stop orders)"
+          example: 1950.00
+        leverage:
+          type: integer
+          minimum: 1
+          maximum: 20
+          description: "Leverage multiplier"
+          example: 2
+        one_click_enabled:
+          type: boolean
+          description: "Enable one-click trading"
+          default: false
+          example: false
+
+    OrderResponse:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          description: "Order ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        status:
+          type: string
+          enum: [open, partially_filled, filled, cancelled]
+          description: "Order status"
+          example: "filled"
+        filled_amount:
+          type: number
+          description: "Amount filled"
+          example: 1000
+        filled_price:
+          type: number
+          description: "Filled price"
+          example: 2001.50
+        fee:
+          type: number
+          description: "Trading fee"
+          example: 2.00
+        quantum_settlement_time_ms:
+          type: integer
+          description: "Quantum settlement time in milliseconds"
+          example: 0.8
+        created_at:
+          type: string
+          format: date-time
+          description: "Order creation timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    OpenOrder:
+      type: object
+      properties:
+        order_id:
+          type: string
+          format: uuid
+          description: "Order ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        mineral_id:
+          type: string
+          enum: [gold, silver, copper, lithium, rare_earth]
+          description: "Mineral identifier"
+          example: "gold"
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Order side"
+          example: "buy"
+        order_type:
+          type: string
+          enum: [market, limit, stop_loss, stop_limit, iceberg]
+          description: "Order type"
+          example: "limit"
+        amount:
+          type: number
+          description: "Order amount"
+          example: 1000
+        price:
+          type: number
+          description: "Order price"
+          example: 2001.50
+        filled_amount:
+          type: number
+          description: "Amount filled so far"
+          example: 0
+        status:
+          type: string
+          enum: [open, partially_filled, filled, cancelled]
+          description: "Order status"
+          example: "open"
+        created_at:
+          type: string
+          format: date-time
+          description: "Order creation timestamp"
+          example: "2024-03-15T14:30:00Z"
+        can_cancel:
+          type: boolean
+          description: "Whether order can be cancelled"
+          example: true
+
+    MarketData:
+      type: object
+      properties:
+        mineral_id:
+          type: string
+          enum: [gold, silver, copper, lithium, rare_earth]
+          description: "Mineral identifier"
+          example: "gold"
+        current_price:
+          type: number
+          description: "Current market price"
+          example: 2001.50
+        bid_price:
+          type: number
+          description: "Current bid price"
+          example: 2001.00
+        ask_price:
+          type: number
+          description: "Current ask price"
+          example: 2001.50
+        volume_24h:
+          type: number
+          description: "24 hour trading volume"
+          example: 50000000
+        change_24h:
+          type: number
+          description: "24 hour price change"
+          example: 0.50
+        change_percent_24h:
+          type: number
+          description: "24 hour price change percentage"
+          example: 0.025
+        timestamp:
+          type: string
+          format: date-time
+          description: "Data timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    OrderBook:
+      type: object
+      properties:
+        mineral_id:
+          type: string
+          enum: [gold, silver, copper, lithium, rare_earth]
+          description: "Mineral identifier"
+          example: "gold"
+        bids:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderBookEntry"
+          description: "Buy orders (sorted by price descending)"
+        asks:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderBookEntry"
+          description: "Sell orders (sorted by price ascending)"
+        spread:
+          type: number
+          description: "Current bid-ask spread"
+          example: 0.50
+        timestamp:
+          type: string
+          format: date-time
+          description: "Order book timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    OrderBookEntry:
+      type: object
+      properties:
+        price:
+          type: number
+          description: "Price level"
+          example: 2001.00
+        amount:
+          type: number
+          description: "Total amount at this price level"
+          example: 5000
+        total:
+          type: number
+          description: "Total value at this price level"
+          example: 10005000
+        order_count:
+          type: integer
+          description: "Number of orders at this level"
+          example: 5
+        timestamp:
+          type: string
+          format: date-time
+          description: "Entry timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    TradeExecution:
+      type: object
+      properties:
+        trade_id:
+          type: string
+          format: uuid
+          description: "Trade ID"
+          example: "trade_550e8400-e29b-41d4-a716-446655540000"
+        order_id:
+          type: string
+          format: uuid
+          description: "Order ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        mineral_id:
+          type: string
+          enum: [gold, silver, copper, lithium, rare_earth]
+          description: "Mineral identifier"
+          example: "gold"
+        side:
+          type: string
+          enum: [buy, sell]
+          description: "Trade side"
+          example: "buy"
+        amount:
+          type: number
+          description: "Trade amount"
+          example: 1000
+        price:
+          type: number
+          description: "Trade price"
+          example: 2001.50
+        fee:
+          type: number
+          description: "Trading fee"
+          example: 2.00
+        quantum_verified:
+          type: boolean
+          description: "Quantum settlement verification"
+          example: true
+        quantum_settlement_time_ms:
+          type: integer
+          description: "Quantum settlement time in milliseconds"
+          example: 0.8
+        timestamp:
+          type: string
+          format: date-time
+          description: "Trade timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+    TradingPerformance:
+      type: object
+      properties:
+        total_trades:
+          type: integer
+          description: "Total number of trades"
+          example: 156
+        winning_trades:
+          type: integer
+          description: "Number of winning trades"
+          example: 89
+        losing_trades:
+          type: integer
+          description: "Number of losing trades"
+          example: 67
+        total_pnl:
+          type: number
+          description: "Total profit and loss"
+          example: 15420.75
+        max_drawdown:
+          type: number
+          description: "Maximum drawdown"
+          example: -0.08
+        sharpe_ratio:
+          type: number
+          description: "Sharpe ratio"
+          example: 1.45
+        win_rate:
+          type: number
+          description: "Win rate percentage"
+          example: 0.57
+        average_trade_time_ms:
+          type: number
+          description: "Average trade execution time"
+          example: 150
+        quantum_settlement_success_rate:
+          type: number
+          description: "Quantum settlement success rate"
+          example: 0.999
+        average_quantum_settlement_time_ms:
+          type: number
+          description: "Average quantum settlement time"
+          example: 0.8
+        user_id:
+          type: string
+          format: uuid
+          description: "User ID"
+          example: "550e8400-e29b-41d4-a716-446655540000"
+        calculated_at:
+          type: string
+          format: date-time
+          description: "Performance calculation timestamp"
+          example: "2024-03-15T14:30:00Z"
+
+tags:
+  - name: Authentication
+    description: "User authentication and authorization endpoints"
+  - name: KYC
+    description: "Know Your Customer verification with AI-powered document analysis"
+  - name: Trading
+    description: "Trading operations with quantum settlement and AI optimization"

@@ -1,0 +1,45 @@
+Starting comprehensive API endpoint testing...
+Testing authentication endpoints...
+Testing user management endpoints...
+Testing mineral marketplace endpoints...
+Testing trading endpoints...
+Testing wallet endpoints...
+Testing news endpoints...
+Testing world map endpoints...
+Testing quantum computing endpoints...
+API Endpoint Test Results:
+==================================================
+Authentication: ❌ FAIL
+  Success Rate: 75.0%
+  Avg Response Time: 161.5ms
+
+User Management: ✅ PASS
+  Success Rate: 100.0%
+  Avg Response Time: 141.5ms
+
+Mineral Marketplace: ✅ PASS
+  Success Rate: 100.0%
+  Avg Response Time: 216.5ms
+
+Trading: ✅ PASS
+  Success Rate: 100.0%
+  Avg Response Time: 183.8ms
+
+Wallet: ✅ PASS
+  Success Rate: 100.0%
+  Avg Response Time: 208.2ms
+
+News: ✅ PASS
+  Success Rate: 100.0%
+  Avg Response Time: 183.8ms
+
+World Map: ✅ PASS
+  Success Rate: 100.0%
+  Avg Response Time: 240.3ms
+
+Quantum Computing: ❌ FAIL
+
+Overall Success Rate: 93.3%
+Overall Response Time: 212.4ms
+Overall API Score: 86.0/100
+Overall Result: ❌ FAIL

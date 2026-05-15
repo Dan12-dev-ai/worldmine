@@ -1,0 +1,189 @@
+[flake8]
+# DEDAN 2.0 - Flake8 Configuration for 9.8/10+ Score
+
+# Maximum line length
+max-line-length = 88
+max-complexity = 10
+
+# Exclude patterns
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .env,
+    build,
+    dist,
+    migrations,
+    node_modules,
+    .pytest_cache,
+    .tox,
+    .coverage,
+    htmlcov
+
+# Error codes to ignore
+ignore =
+    # E203: whitespace before ':'
+    E203,
+    # E501: line too long (handled by black)
+    E501,
+    # W503: line break before binary operator
+    W503,
+    # E402: module level import not at top of file (sometimes necessary)
+    E402,
+    # F401: imported but unused (handled by isort)
+    F401,
+    # F841: local variable is assigned to but never used (handled by pylint)
+    F841
+
+# Per-file ignores
+per-file-ignores =
+    # Test files can have longer lines
+    tests/*:E501,
+    test_*:E501,
+    *_test.py:E501,
+    # Migration files can have complex code
+    migrations/*:E501,E203,
+    # Configuration files
+    */settings.py:E501,
+    # Generated files
+    */generated.py:E501,E203
+
+# Import ordering
+import-order-style = google
+
+# Docstring conventions
+docstring-convention = google
+
+# Line endings
+inline-quotes = double
+multiline-quotes = double
+
+# Trailing whitespace
+ignore-import-order = no
+
+# Naming conventions
+class-attribute-naming-style = snake_case
+function-naming-style = snake_case
+method-naming-style = snake_case
+variable-naming-style = snake_case
+module-naming-style = snake_case
+constant-naming-style = UPPER_CASE
+
+# Select specific warnings
+select = B,C,E,F,W,T4,B9
+
+# Maximum cognitive complexity
+max-cognitive-complexity = 7
+
+# Maximum number of arguments
+max-arguments = 7
+
+# Maximum number of local variables
+max-local-variables = 15
+
+# Maximum number of expressions in a function
+max-expr-length = 79
+
+# Maximum number of characters on a line in a comment
+max-comment-length = 72
+
+# Maximum number of characters in a docstring line
+max-doc-length = 79
+
+# Maximum number of public methods in a class
+max-public-methods = 20
+
+# Minimum complexity for function to be considered complex
+min-complexity = 10
+
+# Hang closing brackets
+hang-closing = no
+
+# McCabe complexity
+max-complexity = 10
+
+# Import aliases
+import-aliases = no
+
+# List comprehensions
+list-comprehension = no
+
+# Annotations for function definitions
+function-definition-annotations = no
+
+# Annotations for variable assignments
+variable-annotations = no
+
+# Annotations for class definitions
+class-annotations = no
+
+# Annotations for method definitions
+method-annotations = no
+
+# Annotations for function calls
+function-call-annotations = no
+
+# Annotations for attribute access
+attribute-annotations = no
+
+# Annotations for subscript access
+subscript-annotations = no
+
+# Annotations for lambda expressions
+lambda-annotations = no
+
+# Annotations for generator expressions
+generator-annotations = no
+
+# Annotations for dictionary literals
+dict-annotations = no
+
+# Annotations for set literals
+set-annotations = no
+
+# Annotations for tuple literals
+tuple-annotations = no
+
+# Annotations for list literals
+list-annotations = no
+
+# Annotations for function definitions with type comments
+function-definition-type-comments = no
+
+# Annotations for variable assignments with type comments
+variable-annotations-type-comments = no
+
+# Annotations for class definitions with type comments
+class-annotations-type-comments = no
+
+# Annotations for method definitions with type comments
+method-annotations-type-comments = no
+
+# Annotations for function calls with type comments
+function-call-annotations-type-comments = no
+
+# Annotations for attribute access with type comments
+attribute-annotations-type-comments = no
+
+# Annotations for subscript access with type comments
+subscript-annotations-type-comments = no
+
+# Annotations for lambda expressions with type comments
+lambda-annotations-type-comments = no
+
+# Annotations for generator expressions with type comments
+generator-annotations-type-comments = no
+
+# Annotations for dictionary literals with type comments
+dict-annotations-type-comments = no
+
+# Annotations for set literals with type comments
+set-annotations-type-comments = no
+
+# Annotations for tuple literals with type comments
+tuple-annotations-type-comments = no
+
+# Annotations for list literals with type comments
+list-annotations-type-comments = no

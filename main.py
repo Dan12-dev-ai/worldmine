@@ -25,6 +25,46 @@ async def root():
 # Load environment variables
 load_dotenv()
 
+# Import Reliability System FIRST (critical)
+from core.reliability_system import (
+    health_monitor,
+    observability,
+    default_circuit_breaker,
+    with_retry,
+    HealthStatus
+)
+
+# Health monitoring endpoints
+@app.get("/health")
+async def health_check():
+    """Comprehensive health check endpoint"""
+    health_summary = await health_monitor.check_all_systems()
+    return {
+        "status": "healthy" if all(hc.status == HealthStatus.HEALTHY for hc in health_summary.values()) else "degraded",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "components": {
+            component_id: {
+                "status": hc.status.value,
+                "latency_ms": hc.latency_ms,
+                "message": hc.message
+            }
+            for component_id, hc in health_summary.items()
+        }
+    }
+
+@app.get("/health/summary")
+async def health_summary_endpoint():
+    """Quick health summary for monitoring"""
+    return health_monitor.get_system_health_summary()
+
+@app.get("/metrics")
+async def metrics_endpoint():
+    """Observability metrics endpoint"""
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "metrics_summary": observability.get_metrics_summary()
+    }
+
 # Import swarm API for global domination
 from src.swarm_api import swarm_app
 

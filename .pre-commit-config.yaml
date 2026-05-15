@@ -1,0 +1,211 @@
+# DEDAN 2.0 - Pre-commit Hooks Configuration
+# Ensures 9.8/10+ code quality before commits
+
+repos:
+  # System hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-ast
+      - id: debug-statements
+
+  # Python formatting and linting
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        language_version: python3.9
+        args: [--line-length=88, --target-version=py39, --skip-string-normalization]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=88, --multi-line=3, --trailing-comma]
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        args: [--max-line-length=88, --max-complexity=10, --extend-ignore=E203,W503,E501]
+
+  - repo: https://github.com/pycqa/pylint
+    rev: v3.0.3
+    hooks:
+      - id: pylint
+        args: [--score=yes, --fail-under=9.8, --jobs=4, --unsafe-load-any-extension=no]
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: [-r, -f, json, -q]
+        exclude: ^tests/.*\.py$
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        args: [--strict, --ignore-missing-imports, --no-strict-optional, --warn-return-any]
+        additional_dependencies: [types-all]
+
+  # Security and dependency checking
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: [--convention=google]
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-security-check
+
+  # Documentation
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: [--convention=google, --add-ignore=D000,D100,D101,D102,D103,D104,D105,D106,D107]
+
+  # Import sorting and formatting
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.1.0
+    hooks:
+      - id: add-trailing-comma
+        args: [--py36-plus]
+
+  # YAML/JSON formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.0
+    hooks:
+      - id: prettier
+        types: [yaml, json, toml, markdown]
+        args: [--tab-width=2, --prose-wrap=preserve]
+
+  # Docker and infrastructure
+  - repo: https://github.com/AleksaC/hadolint-pre-commit
+    rev: v2.10.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore DL3008, --ignore DL3009]
+
+  # Terraform
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.88.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+      - id: terraform_tflint
+        args: [--config-file=.tflint.hcl]
+
+  # Kubernetes
+  - repo: https://github.com/zalando/kubernetes-pre-commit
+    rev: v3.1.0
+    hooks:
+      - id: kubeval
+        files: k8s/.*\.yaml
+      - id: kubeconform
+        files: k8s/.*\.yaml
+
+  # Shell scripts
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args: [--severity=warning, --color=always]
+
+  # Commit message
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: 3.12.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # Custom hooks for DEDAN 2.0
+  - repo: local
+    hooks:
+      - id: dedan-type-check
+        name: DEDAN Type Check
+        entry: python -m dedan.utils.type_checker
+        language: system
+        files: \.py$
+        pass: true
+
+      - id: dedan-import-check
+        name: DEDAN Import Check
+        entry: python -m dedan.utils.import_checker
+        language: system
+        files: \.py$
+        pass: true
+
+      - id: dedan-security-check
+        name: DEDAN Security Check
+        entry: python -m dedan.security.security_checker
+        language: system
+        files: \.py$
+        pass: true
+
+      - id: dedan-performance-check
+        name: DEDAN Performance Check
+        entry: python -m dedan.performance.performance_checker
+        language: system
+        files: \.py$
+        pass: true
+
+      - id: dedan-test-coverage
+        name: DEDAN Test Coverage Check
+        entry: python -m dedan.testing.coverage_checker --min-coverage=95
+        language: system
+        files: \.py$
+        pass: true
+
+      - id: dedan-docstring-check
+        name: DEDAN Docstring Check
+        entry: python -m dedan.docs.docstring_checker
+        language: system
+        files: \.py$
+        pass: true
+
+# Global configuration
+default_language_version:
+  python: python3.9
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: auto
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [pytest-no-cov]
+  submodules: false
+
+# Fail fast configuration
+fail_fast: false
+
+# Minimum version
+minimum_pre_commit_version: 2.20.0

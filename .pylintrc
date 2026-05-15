@@ -1,0 +1,216 @@
+[MASTER]
+# DEDAN 2.0 - Pylint Configuration for 9.8/10+ Score
+
+# Basic configuration
+init-hook='import sys; sys.path.append("/home/kali/mini_business/backend")'
+jobs=4  # Use 4 parallel jobs for faster analysis
+unsafe-load-any-extension=no
+persistent=yes
+
+# Output formatting
+output-format=colorized
+reports=no
+score=yes
+msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})'
+
+# Files to analyze
+ignore-patterns=
+    ^\..*,
+    ^test_.*\.py$,
+    ^.*_test\.py$,
+    ^conftest\.py$,
+    ^setup\.py$,
+    ^migrations/.*\.py$,
+    ^venv/.*\.py$,
+    ^env/.*\.py$,
+    ^__pycache__/.*\.py$
+
+# Loaders
+load-plugins=
+    pylint.extensions.check_docs,
+    pylint.extensions.check_imports,
+    pylint.extensions.check_dunder_all,
+    pylint.extensions.check_elif,
+    pylint.extensions.check_forbidden_import,
+    pylint.extensions.check_forbidden_todo,
+    pylint.extensions.check_mccabe,
+    pylint.extensions.check_docstring_style,
+    pylint.extensions.check_no_self_use,
+    pylint.extensions.check_async,
+    pylint.extensions.check_logging_format,
+    pylint.extensions.check_redeclared_assigned_name,
+    pylint.extensions.check_exceptions,
+    pylint.extensions.check_list_membership,
+    pylint.extensions.check_positional_arguments,
+    pylint.extensions.check_raise_kwargs,
+    pylint.extensions.check_return,
+    pylint.extensions.check_similarity,
+    pylint.extensions.check_spelling,
+    pylint.extensions.check_unexpected_special_methods,
+    pylint.extensions.check_unnecessary_pass,
+    pylint.extensions.check_unreachable,
+    pylint.extensions.check_unused_import,
+    pylint.extensions.check_unused_variables,
+    pylint.extensions.check_yield_from
+
+[MESSAGES CONTROL]
+# Enable all messages by default
+disable=
+    raw-checker-failed,
+    bad-inline-option,
+    locally-disabled,
+    suppressed-message,
+    use-symbolic-message-instead-of-message,
+    useless-suppression
+
+# Enable specific checks for high quality
+enable=
+    missing-type-doc,
+    missing-param-doc,
+    missing-return-doc,
+    missing-raises-doc,
+    missing-yields-doc,
+    missing-any-param-doc,
+    missing-kwoa-doc,
+    missing-kwonly-arg-doc
+
+[FORMAT]
+# Maximum line length
+max-line-length=88
+max-module-lines=1000
+
+# Indentation
+indent-string='    '
+indent-after-paren=4
+
+# Imports
+import-order-style=google
+single-line-imports=no
+single-line-class-stmt=no
+
+[TYPECHECK]
+# Type checking
+ignore-on-opaque-inference=yes
+ignore-mixin-members=yes
+ignore-none=yes
+ignore-on-opaque-inference=yes
+
+# Generated members
+generated-members=
+    numpy.*,
+    torch.*,
+    tensorflow.*,
+    pandas.*,
+    fastapi.*,
+    pydantic.*,
+    sqlalchemy.*,
+    asyncpg.*,
+    redis.*,
+    boto3.*,
+    botocore.*,
+    requests.*,
+    pytest.*,
+    unittest.*
+
+# Zope interface imports
+zope=no
+
+# Member hints
+ignore-mixin-members=yes
+ignore-on-opaque-inference=yes
+
+[BASIC]
+# Variable and function naming
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+const-rgx=[A-Z_][A-Z0-9_]{2,30}$
+class-rgx=[A-Z][a-zA-Z0-9]+$
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+argument-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Good variable names
+good-names=
+    i,j,k,ex,ok,fp,_,id,db,qs,ui,
+    pk,fk,uuid,url,api,http,https,
+    json,xml,yaml,yml,csv,sql,
+    min,max,sum,avg,count,total,
+    req,res,err,data,config,
+    logger,log
+
+# Bad variable names
+bad-names=
+    foo,bar,baz,toto,tutu,tata,
+    spam,eggs,ham,wibble,wobble,
+    fred,george,jimmy,kevin,
+    rick,morty,beth,jerry
+
+# Required attributes
+required-attributes=
+    __version__,
+    __author__,
+    __email__,
+    __license__,
+    __copyright__,
+    __credits__,
+    __maintainer__,
+    __status__,
+    __all__
+
+[DESIGN]
+# Maximum complexity
+max-args=7
+max-locals=15
+max-returns=6
+max-branches=12
+max-statements=50
+max-parents=7
+min-public-methods=2
+max-public-methods=20
+max-bool-expr=5
+max-nested-blocks=5
+
+# Excluded arguments
+exclude-protected=_
+exclude-private=_
+
+[CLASSES]
+# Class checking
+defining-attr-methods=__init__,__new__,__setstate__,__getstate__
+valid-classmethod-first-arg=cls,cls_
+valid-metaclass-classmethod-first-arg=mcs
+
+[EXCEPTIONS]
+# Exception checking
+overgeneral-exceptions=Exception
+broad-except-caught=builtins.Exception,Exception
+
+[VARIABLES]
+# Variable checking
+init-import=no
+dummy-variables-rgx=^_|dummy
+redefining-builtins-modules=builtins
+
+[REFACTORING]
+# Refactoring checks
+max-nested-blocks=5
+never-returning-functions=sys.exit
+
+[LOGGING]
+# Logging checks
+logging-format-style=new
+logging-modules=logging,logging.config
+
+[MISCELLANEOUS]
+# Miscellaneous checks
+notes=FIXME,XXX,TODO,BUG,HACK,OPTIMIZE,REFACTOR
+notes-rgx=
+    (?i)\b(todo|fixme|xxx|hack|optimize|refactor)\b
+
+[SIMILARITIES]
+# Code similarity checking
+min-similarity-lines=4
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+ignore-signatures=yes

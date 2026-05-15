@@ -1,0 +1,48 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.0.3, pluggy-1.6.0 -- /home/kali/mini_business/test_env/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/kali/mini_business
+plugins: cov-7.1.0, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 14 items
+
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_mineral_data_structure PASSED [  7%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_news_article_structure PASSED [ 14%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_contract_structure PASSED [ 21%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_price_calculation PASSED [ 28%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_currency_conversion PASSED [ 35%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_purity_grades PASSED [ 42%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_location_validation PASSED [ 50%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_risk_score_calculation PASSED [ 57%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_shipping_time_calculation PASSED [ 64%]
+tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_sentiment_analysis_basic FAILED [ 71%]
+tests/unit/backend/simple/test_basic_functionality.py::TestQuantumComputingBasics::test_quantum_probability_distribution PASSED [ 78%]
+tests/unit/backend/simple/test_basic_functionality.py::TestQuantumComputingBasics::test_quantum_advantage_calculation PASSED [ 85%]
+tests/unit/backend/simple/test_basic_functionality.py::TestQuantumComputingBasics::test_market_prediction_accuracy PASSED [ 92%]
+tests/unit/backend/simple/test_basic_functionality.py::TestQuantumComputingBasics::test_trading_performance_metrics PASSED [100%]
+
+=================================== FAILURES ===================================
+_____________ TestBasicFunctionality.test_sentiment_analysis_basic _____________
+
+self = <test_basic_functionality.TestBasicFunctionality object at 0x7f7ea3b43d40>
+
+    def test_sentiment_analysis_basic(self):
+        """Test basic sentiment analysis"""
+        positive_words = ['good', 'great', 'excellent', 'positive', 'surge', 'increase']
+        negative_words = ['bad', 'poor', 'negative', 'decline', 'decrease', 'fall']
+    
+        positive_text = "Gold prices surged to new heights with excellent demand"
+        negative_text = "Mining operations faced poor conditions with decline in output"
+    
+        positive_score = sum(1 for word in positive_words if word in positive_text.lower())
+        negative_score = sum(1 for word in negative_words if word in negative_text.lower())
+    
+        assert positive_score > 0
+        assert negative_score > 0
+>       assert positive_score != negative_score
+E       assert 2 != 2
+
+tests/unit/backend/simple/test_basic_functionality.py:151: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/backend/simple/test_basic_functionality.py::TestBasicFunctionality::test_sentiment_analysis_basic
+========================= 1 failed, 13 passed in 0.13s =========================

@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.12, pytest-9.0.3, pluggy-1.6.0 -- /home/kali/mini_business/test_env/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/kali/mini_business
+plugins: cov-7.1.0, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 9 items
+
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_health_check PASSED [ 11%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_user_registration_flow PASSED [ 22%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_mineral_marketplace_api PASSED [ 33%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_news_api PASSED [ 44%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_trading_api PASSED [ 55%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_world_map_api PASSED [ 66%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_quantum_predictions_api PASSED [ 77%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_api_response_times PASSED [ 88%]
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_api_error_handling PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/integration/test_api_integration_mock.py::TestAPIIntegration::test_health_check
+  /home/kali/mini_business/tests/integration/test_api_integration_mock.py:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    'timestamp': datetime.utcnow().isoformat(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 9 passed, 1 warning in 0.25s =========================
