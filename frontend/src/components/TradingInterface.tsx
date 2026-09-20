@@ -15,6 +15,7 @@ import {
   Plus, Minus, X, Check,
   AlertTriangle, Info
 } from 'lucide-react';
+import { TradingService } from '../lib/api/trading';
 
 // Trading types
 interface PriceData {
@@ -96,7 +97,7 @@ const TradingInterface: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Mock data generation
+  // Mock data generation (fallback)
   const generateMockPriceData = useCallback(() => {
     const data: PriceData[] = [];
     const basePrice = 2000;
@@ -147,6 +148,60 @@ const TradingInterface: React.FC = () => {
     
     return { bids, asks };
   }, [currentPrice]);
+
+  // Fetch real trading data from API
+  useEffect(() => {
+    const fetchTradingData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch current price
+        const priceResponse = await TradingService.getCurrentPrice(selectedMineral);
+        setCurrentPrice(priceResponse.data.price);
+        setPriceChange(priceResponse.data.change);
+        setPriceChangePercent(priceResponse.data.change_percent);
+
+        // Fetch order book
+        const orderBookResponse = await TradingService.getOrderBook(selectedMineral);
+        setOrderBook({
+          bids: orderBookResponse.data.bids.map(b => ({ ...b, type: 'bid' as const })),
+          asks: orderBookResponse.data.asks.map(a => ({ ...a, type: 'ask' as const }))
+        });
+
+        // Fetch recent trades
+        const tradesResponse = await TradingService.getRecentTrades(selectedMineral, 20);
+        setRecentTrades(tradesResponse.data.map(t => ({
+          ...t,
+          timestamp: new Date(t.timestamp).getTime()
+        })));
+
+        // Fetch price history
+        const historyResponse = await TradingService.getPriceHistory(selectedMineral, timeframe);
+        setPriceData(historyResponse.data);
+
+        // Fetch position
+        const positionResponse = await TradingService.getPosition(selectedMineral);
+        setPosition({
+          size: positionResponse.data.size,
+          pnl: positionResponse.data.pnl,
+          unrealizedPnl: positionResponse.data.unrealized_pnl
+        });
+
+      } catch (err) {
+        console.error('Error fetching trading data:', err);
+        // Fall back to mock data if API fails
+        setPriceData(generateMockPriceData());
+        setOrderBook(generateMockOrderBook());
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTradingData();
+
+    // Refresh data every 5 seconds
+    const interval = setInterval(fetchTradingData, 5000);
+    return () => clearInterval(interval);
+  }, [selectedMineral, timeframe, generateMockPriceData, generateMockOrderBook]);
 
   const generateMockTrades = useCallback(() => {
     const trades: Trade[] = [];
@@ -220,10 +275,6 @@ const TradingInterface: React.FC = () => {
 
   // Initialize data
   useEffect(() => {
-    setPriceData(generateMockPriceData());
-    setOrderBook(generateMockOrderBook());
-    setRecentTrades(generateMockTrades());
-    setTechnicalIndicators(generateTechnicalIndicators());
     connectWebSocket();
     
     return () => {
@@ -234,38 +285,69 @@ const TradingInterface: React.FC = () => {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [generateMockPriceData, generateMockOrderBook, generateMockTrades, generateTechnicalIndicators, connectWebSocket]);
+  }, [connectWebSocket]);
 
-  // Auto-refresh price data
-  useEffect(() => {
-    if (!isAutoRefresh) return;
-    
-    const interval = setInterval(() => {
-      const newPrice = currentPrice + (Math.random() - 0.5) * 2;
-      const change = newPrice - currentPrice;
-      const changePercent = (change / currentPrice) * 100;
+  // Handle order placement
+  const handlePlaceOrder = async () => {
+    setIsLoading(true);
+    try {
+      // Map component order types to API order types
+      const orderTypeMap: Record<string, string> = {
+        'market': 'market',
+        'limit': 'limit',
+        'stop-loss': 'stop_loss',
+        'stop-limit': 'stop_limit'
+      };
+
+      const orderData = {
+        mineral_id: selectedMineral,
+        side: orderSide,
+        order_type: orderTypeMap[orderType] as any,
+        amount: orderAmount,
+        price: orderType === 'market' ? undefined : orderPrice,
+        stop_price: stopPrice
+      };
+
+      const response = await TradingService.placeOrder(orderData);
       
-      setCurrentPrice(newPrice);
-      setPriceChange(change);
-      setPriceChangePercent(changePercent);
-      setOrderPrice(newPrice);
-      
-      // Update order book
-      setOrderBook(generateMockOrderBook());
-      
-      // Add new trade
-      const newTrade: Trade = {
-        id: `trade_${Date.now()}`,
-        price: newPrice,
-        amount: Math.random() * 500,
-        side: Math.random() > 0.5 ? 'buy' : 'sell',
+      // Add new order to local state
+      const newOrder: Order = {
+        id: response.data.id,
+        type: orderType,
+        side: orderSide,
+        amount: orderAmount,
+        price: orderPrice,
+        stopPrice: stopPrice,
+        filled: 0,
+        status: 'pending',
         timestamp: Date.now()
       };
-      setRecentTrades(prev => [newTrade, ...prev.slice(0, 49)]);
-    }, 1000); // Update every second for demo
-    
-    return () => clearInterval(interval);
-  }, [isAutoRefresh, currentPrice, generateMockOrderBook]);
+      
+      setOrders(prev => [newOrder, ...prev]);
+      
+      // Reset form
+      setOrderAmount(100);
+      setOrderPrice(currentPrice);
+      setStopPrice(undefined);
+      
+    } catch (err) {
+      console.error('Error placing order:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle order cancellation
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      await TradingService.cancelOrder(orderId);
+      setOrders(prev => prev.map(order => 
+        order.id === orderId ? { ...order, status: 'cancelled' } : order
+      ));
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+    }
+  };
 
   // Keyboard shortcuts
   useEffect(() => {

@@ -21,6 +21,12 @@ from unittest.mock import Mock, patch, AsyncMock
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# These tests require live infrastructure (external API host, PostgreSQL and
+# Redis instances). They are skipped by default; run them with
+# RUN_STAGING_TESTS=1.
+pytestmark = pytest.mark.staging
+
+
 class IntegrationTestConfig:
     """Integration test configuration"""
     API_BASE_URL = "https://api.dedan.ai"

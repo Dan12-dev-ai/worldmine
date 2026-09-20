@@ -8,6 +8,12 @@ import json
 import time
 from datetime import datetime
 
+# These tests exercise a deployed staging environment and require network
+# access to staging.dedan.ai. They are skipped by default; run them with
+# RUN_STAGING_TESTS=1.
+pytestmark = pytest.mark.staging
+
+
 class TestAPIIntegration:
     """Test API endpoints integration"""
     

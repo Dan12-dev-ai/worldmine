@@ -3,7 +3,7 @@ Database Models - DEDAN Mine Backend
 SQLAlchemy models for all database tables
 """
 
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, JSON, ForeignKey, Index
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Text, JSON, ForeignKey, Index, TypeDecorator, CHAR
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -12,10 +12,44 @@ import uuid
 
 Base = declarative_base()
 
+
+class GUID(TypeDecorator):
+    """Backend-agnostic UUID column type.
+
+    Uses the native PostgreSQL UUID type when available, and stores values as
+    CHAR(32) hex strings on other backends (e.g. SQLite in the test suite).
+    Follows the standard SQLAlchemy "backend-agnostic GUID" recipe.
+    """
+    impl = CHAR
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(GUID)
+        return dialect.type_descriptor(CHAR(32))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == "postgresql":
+            return value
+        if isinstance(value, uuid.UUID):
+            return value.hex
+        return uuid.UUID(str(value)).hex
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name == "postgresql":
+            return value
+        if isinstance(value, uuid.UUID):
+            return value
+        return uuid.UUID(str(value))
+
 class User(Base):
     __tablename__ = "users"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
     username = Column(String(100), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
@@ -31,8 +65,7 @@ class User(Base):
     profile_data = Column(JSON, nullable=False)
     quantum_public_key = Column(String(1024), nullable=True)
     
-    # NEW: Reputation and verification fields
-    reputation_score = Column(Float, nullable=False, default=0.0)
+    # Reputation and verification fields
     verification_data = Column(JSON, nullable=True)  # GPS/Satellite metadata
     
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
@@ -43,19 +76,21 @@ class User(Base):
     phone_verified = Column(Boolean, nullable=False, default=False)
     
     # Relationships
-    listings = relationship("Listing", back_populates="seller")
+    listings = relationship("Listing", foreign_keys="Listing.seller_id", back_populates="seller")
     bids = relationship("Bid", back_populates="bidder")
     buy_it_now_transactions_buyer = relationship("BuyItNowTransaction", foreign_keys="BuyItNowTransaction.buyer_id", back_populates="buyer")
     buy_it_now_transactions_seller = relationship("BuyItNowTransaction", foreign_keys="BuyItNowTransaction.seller_id", back_populates="seller")
     guardian_patterns = relationship("GuardianPattern", back_populates="user")
     market_agents = relationship("MarketAgent", back_populates="owner")
     agent_rentals = relationship("AgentRental", back_populates="renter")
+    esg_metrics = relationship("ESGMetrics", foreign_keys="ESGMetrics.user_id", back_populates="user")
+    compliance_records = relationship("ComplianceRecord", foreign_keys="ComplianceRecord.user_id", back_populates="user")
 
 class Listing(Base):
     __tablename__ = "listings"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    seller_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    seller_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     title = Column(String(500), nullable=False)
     description = Column(Text, nullable=False)
     category = Column(String(100), nullable=False, index=True)
@@ -70,7 +105,7 @@ class Listing(Base):
     auction_end_time = Column(DateTime(timezone=True), nullable=True)
     reserve_price = Column(Float, nullable=True)
     current_bid = Column(Float, nullable=False, default=0.0)
-    current_bidder_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    current_bidder_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     bid_count = Column(Integer, nullable=False, default=0)
     auto_extend = Column(Boolean, nullable=False, default=True)
     extend_time_minutes = Column(Integer, nullable=False, default=10)
@@ -115,9 +150,8 @@ class Listing(Base):
     is_featured = Column(Boolean, nullable=False, default=False)
     
     # Relationships
-    seller = relationship("User", back_populates="listings")
+    seller = relationship("User", foreign_keys=[seller_id], back_populates="listings")
     auction = relationship("Auction", back_populates="listing", uselist=False)
-    bids = relationship("Bid", back_populates="listing")
     buy_it_now_transactions = relationship("BuyItNowTransaction", back_populates="listing")
     traceability = relationship("TraceabilityRecord", back_populates="listing")
     esg_metrics = relationship("ESGMetrics", back_populates="listing")
@@ -127,10 +161,10 @@ class Listing(Base):
 class Auction(Base):
     __tablename__ = "auctions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=False, unique=True, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=False, unique=True, index=True)
     current_bid = Column(Float, nullable=False, default=0.0)
-    current_bidder_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    current_bidder_id = Column(GUID, ForeignKey("users.id"), nullable=True, index=True)
     bid_count = Column(Integer, nullable=False, default=0)
     starting_price = Column(Float, nullable=False)
     reserve_price = Column(Float, nullable=True)
@@ -144,22 +178,23 @@ class Auction(Base):
     scheduled_start_time = Column(DateTime(timezone=True), nullable=True)
     actual_start_time = Column(DateTime(timezone=True), nullable=True)
     actual_end_time = Column(DateTime(timezone=True), nullable=True)
-    winner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    winner_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     final_price = Column(Float, nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     
     # Relationships
-    listing = relationship("Listing", back_populates="auction")
+    listing = relationship("Listing", back_populates="auction", uselist=False)
+    bids = relationship("Bid", back_populates="auction")
     current_bidder = relationship("User", foreign_keys=[current_bidder_id])
     winner = relationship("User", foreign_keys=[winner_id])
 
 class Bid(Base):
     __tablename__ = "bids"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    auction_id = Column(UUID(as_uuid=True), ForeignKey("auctions.id"), nullable=False, index=True)
-    bidder_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    auction_id = Column(GUID, ForeignKey("auctions.id"), nullable=False, index=True)
+    bidder_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Float, nullable=False, index=True)
     bid_time = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc), index=True)
     is_winning = Column(Boolean, nullable=False, default=False)
@@ -175,10 +210,10 @@ class Bid(Base):
 class BuyItNowTransaction(Base):
     __tablename__ = "buy_it_now_transactions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=False, index=True)
-    buyer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    seller_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=False, index=True)
+    buyer_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
+    seller_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     price = Column(Float, nullable=False)
     original_price = Column(Float, nullable=False)
     commission_rate = Column(Float, nullable=False, default=5.0)
@@ -211,12 +246,12 @@ class BuyItNowTransaction(Base):
 class TraceabilityRecord(Base):
     __tablename__ = "traceability_records"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=False, index=True)
     mine_location = Column(JSON, nullable=False)
     extraction_date = Column(DateTime(timezone=True), nullable=False, index=True)
     extraction_method = Column(String(100), nullable=False)
-    miner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    miner_id = Column(GUID, ForeignKey("users.id"), nullable=True, index=True)
     
     # IoT sensor data
     iot_sensors = Column(JSON, nullable=False, default=[])
@@ -239,10 +274,10 @@ class TraceabilityRecord(Base):
     compliance_officer_signature = Column(String(500), nullable=True)
     anti_smuggling_score = Column(Integer, nullable=False, default=0)
     manual_review = Column(Boolean, nullable=False, default=False)
-    manual_reviewer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    manual_reviewer_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     manual_review_notes = Column(Text, nullable=True)
     manual_review_date = Column(DateTime(timezone=True), nullable=True)
-    approved_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    approved_by = Column(GUID, ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime(timezone=True), nullable=True)
     
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
@@ -257,9 +292,9 @@ class TraceabilityRecord(Base):
 class ESGMetrics(Base):
     __tablename__ = "esg_metrics"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=True, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=True, index=True)
     
     # ESG scores (0-100)
     overall_score = Column(Integer, nullable=False)
@@ -285,22 +320,22 @@ class ESGMetrics(Base):
     model_version = Column(String(50), nullable=True)
     
     assessment_date = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc).date(), index=True)
-    assessor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    assessor_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     
     created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     
     # Relationships
-    user = relationship("User", back_populates="esg_metrics")
+    user = relationship("User", foreign_keys=[user_id], back_populates="esg_metrics")
     listing = relationship("Listing", back_populates="esg_metrics")
     assessor = relationship("User", foreign_keys=[assessor_id])
 
 class ComplianceRecord(Base):
     __tablename__ = "compliance_records"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=True, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=True, index=True)
     
     # Compliance information
     compliance_type = Column(String(50), nullable=False, index=True)  # export_license, import_permit, authenticity_certificate, origin_verification, anti_smuggling_check
@@ -317,13 +352,13 @@ class ComplianceRecord(Base):
     
     # Human review
     manual_review_required = Column(Boolean, nullable=False, default=False)
-    manual_reviewer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    manual_reviewer_id = Column(GUID, ForeignKey("users.id"), nullable=True)
     manual_review_notes = Column(Text, nullable=True)
     manual_review_date = Column(DateTime(timezone=True), nullable=True)
     
     # Status and timeline
     status = Column(String(20), nullable=False, default='pending', index=True)  # pending, under_review, approved, rejected, requires_additional_info
-    approved_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    approved_by = Column(GUID, ForeignKey("users.id"), nullable=True)
     approved_at = Column(DateTime(timezone=True), nullable=True)
     rejection_reason = Column(Text, nullable=True)
     
@@ -336,7 +371,7 @@ class ComplianceRecord(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     
     # Relationships
-    user = relationship("User", back_populates="compliance_records")
+    user = relationship("User", foreign_keys=[user_id], back_populates="compliance_records")
     listing = relationship("Listing", back_populates="compliance_records")
     manual_reviewer = relationship("User", foreign_keys=[manual_reviewer_id])
     approver = relationship("User", foreign_keys=[approved_by])
@@ -344,8 +379,8 @@ class ComplianceRecord(Base):
 class AIAgent(Base):
     __tablename__ = "ai_agents"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    owner_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     agent_name = Column(String(200), nullable=False)
     agent_type = Column(String(50), nullable=False, index=True)  # trading, analysis, verification, compliance, portfolio_management
     
@@ -383,14 +418,14 @@ class AIAgent(Base):
 class AgentAction(Base):
     __tablename__ = "agent_actions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("ai_agents.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    agent_id = Column(GUID, ForeignKey("ai_agents.id"), nullable=False, index=True)
     action_type = Column(String(50), nullable=False, index=True)  # place_bid, make_offer, analyze_market, verify_authenticity, compliance_check, portfolio_rebalance
     
     # Action details
     action_data = Column(JSON, nullable=False)
-    target_listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=True, index=True)
-    target_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    target_listing_id = Column(GUID, ForeignKey("listings.id"), nullable=True, index=True)
+    target_user_id = Column(GUID, ForeignKey("users.id"), nullable=True, index=True)
     
     # AI decision making
     confidence_score = Column(Float, nullable=False, default=0.00)
@@ -416,9 +451,9 @@ class AgentAction(Base):
 class VideoSession(Base):
     __tablename__ = "video_sessions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=False, index=True)
-    host_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=False, index=True)
+    host_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     
     # Session configuration
     session_type = Column(String(50), nullable=False)  # negotiation, live_auction, verification_inspection, expert_consultation
@@ -464,13 +499,13 @@ class VideoSession(Base):
 class TrustSignal(Base):
     __tablename__ = "trust_signals"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     signal_type = Column(String(50), nullable=False, index=True)  # positive_feedback, watch_list_add, watch_list_remove, verified_purchase, quick_response, professional_verification, bulk_trader, long_term_member
     
     # Signal data
     signal_data = Column(JSON, nullable=False)
-    source_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    source_user_id = Column(GUID, ForeignKey("users.id"), nullable=True, index=True)
     context = Column(String(100), nullable=True)  # auction, purchase, verification, etc.
     
     # Signal strength
@@ -491,9 +526,9 @@ class TrustSignal(Base):
 class BulkOrder(Base):
     __tablename__ = "bulk_orders"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    buyer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
-    listing_id = Column(UUID(as_uuid=True), ForeignKey("listings.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    buyer_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
+    listing_id = Column(GUID, ForeignKey("listings.id"), nullable=False, index=True)
     
     # Bulk order details
     quantity_requested = Column(Float, nullable=False)
@@ -594,8 +629,8 @@ Index('idx_trust_signals_expires', TrustSignal.expires_at)
 class GuardianPattern(Base):
     __tablename__ = "user_guardians"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     behavior_patterns = Column(JSON, nullable=False)  # login_times, typical_trade_sizes
     risk_history = Column(JSON, nullable=False)  # Historical risk scores
     last_analysis = Column(DateTime(timezone=True), nullable=True)
@@ -608,8 +643,8 @@ class GuardianPattern(Base):
 class MarketAgent(Base):
     __tablename__ = "market_agents"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    owner_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     agent_type = Column(String(50), nullable=False, index=True)  # mineral_scout, price_predictor, risk_analyzer, market_matcher
     rental_price_per_hour = Column(Float, nullable=False)
     min_rental_hours = Column(Integer, nullable=False, default=1)
@@ -632,9 +667,9 @@ class MarketAgent(Base):
 class AgentRental(Base):
     __tablename__ = "agent_rentals"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    agent_id = Column(UUID(as_uuid=True), ForeignKey("market_agents.id"), nullable=False, index=True)
-    renter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    agent_id = Column(GUID, ForeignKey("market_agents.id"), nullable=False, index=True)
+    renter_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     rental_duration_hours = Column(Integer, nullable=False)
     total_cost = Column(Float, nullable=False)
     payment_method = Column(String(50), nullable=False)  # tokens, usdc, usdt, eth, btc
@@ -668,8 +703,8 @@ Index('idx_market_agents_created', MarketAgent.created_at.desc())
 class UnifiedUserSession(Base):
     __tablename__ = "unified_sessions"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     session_id = Column(String(255), unique=True, nullable=False, index=True)
     
     # Core user data (protected by Zero-Knowledge Shield)
@@ -743,9 +778,9 @@ class UnifiedUserSession(Base):
 class FeatureExecutionLog(Base):
     __tablename__ = "feature_execution_logs"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
     session_id = Column(String(255), nullable=False, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     
     # Feature execution details
     feature_name = Column(String(100), nullable=False, index=True)
@@ -772,9 +807,9 @@ class FeatureExecutionLog(Base):
 class InsurancePolicy(Base):
     __tablename__ = "insurance_policies"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
     policy_id = Column(String(100), unique=True, nullable=False, index=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     session_id = Column(String(255), nullable=False, index=True)
     
     # Policy details
@@ -808,8 +843,8 @@ class InsurancePolicy(Base):
 class SatelliteVerification(Base):
     __tablename__ = "satellite_verifications"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, ForeignKey("users.id"), nullable=False, index=True)
     session_id = Column(String(255), nullable=False, index=True)
     transaction_id = Column(String(100), nullable=True, index=True)
     
@@ -868,3 +903,42 @@ Index('idx_satellite_verifications_transaction', SatelliteVerification.transacti
 Index('idx_satellite_verifications_provenance', SatelliteVerification.provenance_hash)
 Index('idx_satellite_verifications_verified', SatelliteVerification.verified)
 Index('idx_satellite_verifications_created', SatelliteVerification.created_at.desc())
+
+
+class Wallet(Base):
+    """User wallet for holding funds (trading, escrow, payouts)."""
+    __tablename__ = "wallets"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    user_id = Column(GUID, nullable=False, index=True)
+    wallet_type = Column(String(50), nullable=False, default="trading")  # trading, escrow, payout
+    currency = Column(String(10), nullable=False, default="USD")
+    balance = Column(Float, nullable=False, default=0.0)
+    frozen_balance = Column(Float, nullable=False, default=0.0)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+
+class Transaction(Base):
+    """Ledger entry for wallet movements (deposit, withdrawal, transfer, payment)."""
+    __tablename__ = "transactions"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    wallet_id = Column(GUID, nullable=False, index=True)
+    type = Column(String(50), nullable=False)  # deposit, withdrawal, transfer, payment
+    amount = Column(Float, nullable=False)
+    currency = Column(String(10), nullable=False, default="USD")
+    status = Column(String(20), nullable=False, default="pending", index=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    # `metadata` is reserved by SQLAlchemy's declarative Base, so map it via txn_metadata
+    txn_metadata = Column("metadata", JSON, nullable=False, default=dict)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+
+Index('idx_wallets_user', Wallet.user_id)
+Index('idx_wallets_type', Wallet.wallet_type)
+Index('idx_transactions_wallet', Transaction.wallet_id)
+Index('idx_transactions_status', Transaction.status)
+Index('idx_transactions_created', Transaction.created_at.desc())

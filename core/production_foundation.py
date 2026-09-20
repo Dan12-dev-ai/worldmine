@@ -212,6 +212,7 @@ class SecretsManager:
     
     def _load_secrets(self):
         """Load from environment (in production use AWS Secrets Manager / HashiCorp Vault)"""
+        environment = os.getenv("ENVIRONMENT", "development").lower()
         self.secrets_cache = {
             "DATABASE_URL": os.getenv("DATABASE_URL"),
             "STRIPE_SECRET_KEY": os.getenv("STRIPE_SECRET_KEY"),
@@ -220,12 +221,20 @@ class SecretsManager:
             "ENCRYPTION_KEY": os.getenv("ENCRYPTION_KEY"),
             "JWT_SECRET": os.getenv("JWT_SECRET"),
         }
-        
+
         # Validate all secrets are present
         missing = [k for k, v in self.secrets_cache.items() if not v]
         if missing:
-            logger.error("missing_secrets", secrets=missing)
-            raise ValueError(f"Missing secrets: {missing}")
+            if environment in ("production", "prod"):
+                logger.error("missing_secrets", secrets=missing)
+                raise ValueError(f"Missing secrets: {missing}")
+
+            # Development/test fallback: clearly-marked placeholder secrets so
+            # the platform can boot without cloud secret providers. Production
+            # (ENVIRONMENT=production) still fails hard on missing secrets.
+            logger.warning("missing_secrets_dev_fallback", secrets=missing)
+            for key in missing:
+                self.secrets_cache[key] = f"dev-placeholder-{key.lower().replace('_', '-')}"
     
     def get(self, key: str) -> str:
         """Get secret safely"""
@@ -378,21 +387,20 @@ class AuditLog:
         await self._append_to_immutable_log(entry)
         logger.info("risk_check_logged", order_id=order_id, approved=approved)
     
-    async def log_trade_execution(self, trade: ExecutedTrade):
-        """Log trade execution"""
-        entry = {
+    async def log_trade_execution(self, trade):
+        """Log trade execution (supports ExecutedTrade and Trade shapes)"""
+        await self._safe_append({
             "event_type": "TRADE_EXECUTED",
-            "trade_id": trade.trade_id,
-            "order_id": trade.order_id,
-            "asset": trade.asset,
-            "side": trade.side.value,
-            "quantity": str(trade.quantity),
-            "price": str(trade.execution_price),
-            "timestamp": trade.execution_timestamp.isoformat(),
-        }
-        
-        await self._append_to_immutable_log(entry)
-        logger.info("trade_executed_logged", trade_id=trade.trade_id)
+            "trade_id": getattr(trade, "trade_id", None),
+            "order_id": getattr(trade, "order_id", None) or getattr(trade, "buy_order_id", None),
+            "sell_order_id": getattr(trade, "sell_order_id", None),
+            "asset": getattr(trade, "asset", None) or getattr(trade, "instrument_id", None),
+            "side": getattr(trade.side, "value", None) if getattr(trade, "side", None) is not None else None,
+            "quantity": str(getattr(trade, "quantity", "")),
+            "price": str(getattr(trade, "execution_price", None) or getattr(trade, "price", "")),
+            "timestamp": getattr(trade, "execution_timestamp", None) or getattr(trade, "executed_at", None),
+        })
+        logger.info("trade_executed_logged", trade_id=getattr(trade, "trade_id", None))
     
     async def log_risk_event(self, event_type: RiskEventType, severity: RiskLevel, details: Dict[str, Any]):
         """Log risk circuit breaker event"""
@@ -410,6 +418,145 @@ class AuditLog:
             severity=severity.value
         )
     
+    async def _safe_append(self, entry: Dict[str, Any]):
+        """Fail-safe append: audit logging must never break the business flow."""
+        try:
+            await self._append_to_immutable_log(entry)
+        except Exception as exc:  # pragma: no cover - depends on DB availability
+            logger.warning("audit_log_append_failed", error=str(exc), event_type=entry.get("event_type"))
+
+    @staticmethod
+    def _serialize(obj: Any) -> Any:
+        """Best-effort JSON-safe serialization for arbitrary domain objects."""
+        if obj is None or isinstance(obj, (str, int, float, bool)):
+            return obj
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        if hasattr(obj, "__dict__"):
+            return {
+                k: AuditLog._serialize(v)
+                for k, v in vars(obj).items()
+                if not k.startswith("_")
+            }
+        if isinstance(obj, dict):
+            return {str(k): AuditLog._serialize(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple, set)):
+            return [AuditLog._serialize(v) for v in obj]
+        return str(obj)
+
+    async def log_order_submission(self, order):
+        """Log order submission"""
+        await self._safe_append({
+            "event_type": "ORDER_SUBMITTED",
+            "order": self._serialize(order),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("order_submission_logged", order_id=getattr(order, "order_id", None))
+
+    async def log_governance_decision(self, decision):
+        """Log governance decision"""
+        await self._safe_append({
+            "event_type": "GOVERNANCE_DECISION",
+            "decision": self._serialize(decision),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info(
+            "governance_decision_logged",
+            decision_id=getattr(decision, "decision_id", None),
+            approved=getattr(decision, "approved", None),
+        )
+
+    async def log_listing_creation(self, listing):
+        """Log verified listing creation"""
+        await self._safe_append({
+            "event_type": "LISTING_CREATED",
+            "listing": self._serialize(listing),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("listing_creation_logged", listing_id=getattr(listing, "listing_id", None))
+
+    async def log_asset_registration(self, asset):
+        """Log physical asset registration"""
+        await self._safe_append({
+            "event_type": "ASSET_REGISTRATION",
+            "asset": self._serialize(asset),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("asset_registration_logged", asset_id=getattr(asset, "asset_id", None))
+
+    async def log_escrow_initiation(self, transaction):
+        """Log escrow transaction initiation"""
+        await self._safe_append({
+            "event_type": "ESCROW_INITIATED",
+            "transaction": self._serialize(transaction),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("escrow_initiation_logged", transaction_id=getattr(transaction, "transaction_id", None))
+
+    async def log_escrow_release(self, transaction):
+        """Log escrow fund release"""
+        await self._safe_append({
+            "event_type": "ESCROW_RELEASED",
+            "transaction": self._serialize(transaction),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("escrow_release_logged", transaction_id=getattr(transaction, "transaction_id", None))
+
+    async def log_negotiation_room_creation(self, room):
+        """Log negotiation room creation"""
+        await self._safe_append({
+            "event_type": "NEGOTIATION_ROOM_CREATED",
+            "room": self._serialize(room),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("negotiation_room_logged", room_id=getattr(room, "room_id", None))
+
+    async def log_participant_join(self, room_id: str, participant):
+        """Log participant joining a negotiation room"""
+        await self._safe_append({
+            "event_type": "NEGOTIATION_PARTICIPANT_JOINED",
+            "room_id": room_id,
+            "participant": self._serialize(participant),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("participant_join_logged", room_id=room_id)
+
+    async def log_negotiation_message(self, message):
+        """Log negotiation message"""
+        await self._safe_append({
+            "event_type": "NEGOTIATION_MESSAGE_SENT",
+            "message": self._serialize(message),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("negotiation_message_logged", message_id=getattr(message, "message_id", None))
+
+    async def log_video_session_start(self, session):
+        """Log video session start"""
+        await self._safe_append({
+            "event_type": "VIDEO_SESSION_STARTED",
+            "session": self._serialize(session),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("video_session_start_logged", session_id=getattr(session, "session_id", None))
+
+    async def log_video_session_end(self, session):
+        """Log video session end"""
+        await self._safe_append({
+            "event_type": "VIDEO_SESSION_ENDED",
+            "session": self._serialize(session),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("video_session_end_logged", session_id=getattr(session, "session_id", None))
+
+    async def log_intelligence_report_generation(self, report):
+        """Log intelligence report generation"""
+        await self._safe_append({
+            "event_type": "INTELLIGENCE_REPORT_GENERATED",
+            "report": self._serialize(report),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("intelligence_report_logged", report_id=getattr(report, "report_id", None))
+
     async def _append_to_immutable_log(self, entry: Dict[str, Any]):
         """Append to immutable audit log (PostgreSQL append-only table)"""
         query = """

@@ -12,7 +12,7 @@ import os
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../backend'))
 
-from services.mineral_news_service import MineralNewsService, NewsCategory, SentimentAnalysis
+from backend.services.mineral_news_service import MineralNewsService, NewsCategory, SentimentAnalysis
 
 class TestMineralNewsService:
     """Test suite for MineralNewsService class"""
@@ -20,9 +20,9 @@ class TestMineralNewsService:
     @pytest.fixture
     def news_service(self):
         """Create test news service instance"""
-        with patch('services.mineral_news_service.create_engine'), \
-             patch('services.mineral_news_service.redis.Redis'), \
-             patch('services.mineral_news_service.openai.OpenAI'):
+        with patch('backend.services.mineral_news_service.create_engine'), \
+             patch('backend.services.mineral_news_service.redis.Redis'), \
+             patch('backend.services.mineral_news_service.openai.OpenAI'):
             return MineralNewsService()
     
     def test_initialization(self, news_service):

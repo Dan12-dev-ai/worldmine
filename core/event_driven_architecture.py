@@ -15,7 +15,7 @@ import json
 import uuid
 from typing import Dict, Any, Callable, List, Optional
 from datetime import datetime, timezone
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from abc import ABC, abstractmethod
 from enum import Enum
 import asyncio
@@ -69,15 +69,44 @@ class EventType(Enum):
     SYSTEM_ERROR = "system.error"
     SERVICE_DEGRADED = "system.service.degraded"
 
+    # Trading module events
+    TRADING_INSTRUMENT_CREATED = "trading.instrument.created"
+    TRADING_ORDER_SUBMITTED = "trading.order.submitted"
+    TRADING_TRADE_EXECUTED = "trading.trade.executed"
+
+    # Governance module events
+    GOVERNANCE_DECISION_MADE = "governance.decision.made"
+    MARKET_STATE_UPDATED = "governance.market_state.updated"
+
+    # Negotiation module events
+    NEGOTIATION_ROOM_CREATED = "negotiation.room.created"
+    NEGOTIATION_PARTICIPANT_JOINED = "negotiation.participant.joined"
+    NEGOTIATION_MESSAGE_SENT = "negotiation.message.sent"
+    VIDEO_SESSION_STARTED = "negotiation.video_session.started"
+    VIDEO_SESSION_ENDED = "negotiation.video_session.ended"
+
+    # Intelligence module events
+    NEWS_FEED_UPDATED = "intelligence.news_feed.updated"
+    INTELLIGENCE_REPORT_GENERATED = "intelligence.report.generated"
+    MARKET_ANOMALIES_DETECTED = "intelligence.market_anomalies.detected"
+
+    # Physical marketplace events
+    LISTING_CREATED = "physical.listing.created"
+    ESCROW_TRANSACTION_INITIATED = "physical.escrow.initiated"
+    ESCROW_FUNDS_RELEASED = "physical.escrow.released"
+
+    # AI system events
+    AI_SIGNAL_GENERATED = "ai.signal.generated"
+
 @dataclass
 class Event:
     """Base event class"""
-    event_id: str
     event_type: EventType
-    timestamp: datetime
-    source_service: str
     payload: Dict[str, Any]
-    correlation_id: str  # For tracing request through systems
+    event_id: str = field(default_factory=lambda: f"EVT_{uuid.uuid4().hex[:12]}")
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    source_service: str = "unknown"
+    correlation_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     user_id: Optional[str] = None
     
     def to_json(self) -> str:

@@ -658,7 +658,7 @@ class Web3CryptoBridge:
                 "gasPrice": "0x0",  # Market gas price
                 "nonce": await self.get_nonce(crypto_data.get("wallet_address")),
                 "data": f"DEDAN Mine Payout - {request.user_id}",
-                "chainId": token_info.get("network") == "BEP-20" ? 56 : 1,  # BSC or Ethereum
+                "chainId": 56 if token_info.get("network") == "BEP-20" else 1,  # BSC or Ethereum
                 "nbe_compliant": True
             }
             
@@ -747,9 +747,16 @@ class EthiopianSovereignHub:
             # Pre-compliance NBE check
             nbe_compliance_check = await self.nbe_compliance_monitor.verify_compliance(request)
             if not nbe_compliance_check["compliant"]:
+                # Surface the specific violations so clients see the exact NBE directive violated
+                violations = [
+                    str(r.get("violation"))
+                    for r in nbe_compliance_check.get("compliance_results", {}).values()
+                    if not r.get("compliant", True) and r.get("violation")
+                ]
+                prohibition = "; ".join(f"{v} is prohibited" for v in violations) if violations else "Transaction violates NBE directives"
                 return {
                     "success": False,
-                    "error": "NBE compliance check failed",
+                    "error": f"NBE Compliance: {prohibition}. Use authorized banks only.",
                     "nbe_status": ComplianceStatus.NBE_COMPLIANT.value,
                     "compliance_details": nbe_compliance_check
                 }

@@ -587,6 +587,9 @@ markers = [
     "quantum: marks tests as quantum tests",
     "security: marks tests as security tests",
     "performance: marks tests as performance tests",
+    "load: marks tests as load tests (deselect with '-m \"not load\"')",
+    "chaos: marks tests as chaos tests (deselect with '-m \"not chaos\"')",
+    "staging: marks tests that require live staging infrastructure (skipped unless RUN_STAGING_TESTS=1)",
 ]
 asyncio_mode = "auto"
 filterwarnings = [
@@ -678,10 +681,6 @@ exclude = [
     ".coverage",
     "htmlcov",
 ]
-
-[tool.bandit]
-exclude_dirs = ["tests", "migrations", "venv", ".venv"]
-skips = ["B101", "B601"]
 
 [tool.pyright]
 include = ["src/**/*.py"]

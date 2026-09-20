@@ -1,0 +1,75 @@
+# ==============================================
+# WORLD-MINE FRONTEND DOCKERFILE
+# Production-grade multi-stage build
+# ==============================================
+
+# Stage 1: Dependencies
+FROM node:18-alpine as deps
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Stage 2: Builder
+FROM node:18-alpine as builder
+
+# Set build arguments
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY frontend/package*.json ./
+
+# Copy source code
+COPY frontend/ ./
+
+# Build application
+RUN npm run build
+
+# Stage 3: Runner
+FROM node:18-alpine as runner
+
+# Set labels
+LABEL maintainer="World-Mine Platform Team" \
+      org.opencontainers.image.title="World-Mine Frontend" \
+      org.opencontainers.image.description="Production-grade frontend for mineral trading platform" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}"
+
+# Set environment variables
+ENV NODE_ENV=production \
+    PORT=3000
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Copy built application from builder
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+
+# Run application
+CMD ["node", "server.js"]

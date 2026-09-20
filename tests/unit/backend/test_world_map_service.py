@@ -12,7 +12,7 @@ import os
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../backend'))
 
-from services.world_map_service import WorldMapService, ContractStatus, TransportMode
+from backend.services.world_map_service import WorldMapService, ContractStatus, TransportMode
 
 class TestWorldMapService:
     """Test suite for WorldMapService class"""
@@ -20,10 +20,7 @@ class TestWorldMapService:
     @pytest.fixture
     def world_map_service(self):
         """Create test world map service instance"""
-        with patch('services.world_map_service.create_engine'), \
-             patch('services.world_map_service.redis.Redis'), \
-             patch('services.world_map_service.geopy.Nominatim'), \
-             patch('services.world_map_service.Aer.get_backend'):
+        with patch('backend.services.world_map_service.create_engine'):
             return WorldMapService()
     
     def test_initialization(self, world_map_service):

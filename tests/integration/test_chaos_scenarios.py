@@ -66,7 +66,7 @@ class ServiceKiller:
             if service_name in self.original_processes:
                 # In real scenario, this would restart the service
                 logger.info(f"Reviving service {service_name}")
-                del self.killed_services.discard(service_name)
+                self.killed_services.discard(service_name)
                 del self.original_processes[service_name]
                 return True
             

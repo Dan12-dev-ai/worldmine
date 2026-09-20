@@ -1,0 +1,208 @@
+# 🏗️ WORLD-MINE ENTERPRISE DOCKER-COMPOSE
+## Production Environment Parity - Python AI Agents + Node.js Backend + Frontend + Supabase
+
+version: '3.8'
+
+services:
+  # ==============================================
+  # BACKEND SERVICES
+  # ==============================================
+  
+  worldmine-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: worldmine-api
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==============================================
+  # AI AGENT SERVICES
+  # ==============================================
+  
+  ai-agent-executive:
+    build:
+      context: ./ai_agents
+      dockerfile: Dockerfile.executive
+    container_name: worldmine-ai-executive
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    depends_on:
+      - worldmine-api
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+  ai-agent-platform:
+    build:
+      context: ./ai_agents
+      dockerfile: Dockerfile.platform
+    container_name: worldmine-ai-platform
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    depends_on:
+      - worldmine-api
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+  governance-agent:
+    build:
+      context: ./core
+      dockerfile: Dockerfile.governance
+    container_name: worldmine-governance-agent
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    depends_on:
+      - worldmine-api
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+  fraud-detection-agent:
+    build:
+      context: ./core
+      dockerfile: Dockerfile.fraud
+    container_name: worldmine-fraud-agent
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    depends_on:
+      - worldmine-api
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+  # ==============================================
+  # DATABASE & CACHING
+  # ==============================================
+  
+  postgres:
+    image: postgres:16-alpine
+    container_name: worldmine-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-worldmine}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-worldmine_secret}
+      - POSTGRES_DB=${POSTGRES_DB:-worldmine}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-worldmine}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: worldmine-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==============================================
+  # FRONTEND
+  # ==============================================
+  
+  worldmine-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: worldmine-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_SUPABASE_URL=${SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_API_URL=http://worldmine-api:8000
+    depends_on:
+      - worldmine-api
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+  # ==============================================
+  # MONITORING & OBSERVABILITY
+  # ==============================================
+  
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: worldmine-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: worldmine-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - worldmine-network
+    restart: unless-stopped
+
+# ==============================================
+# NETWORKS & VOLUMES
+# ==============================================
+
+networks:
+  worldmine-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:

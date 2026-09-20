@@ -43,6 +43,7 @@ class AgentSignal:
     confidence: float  # 0.0 to 1.0
     timestamp: datetime
     data: Dict[str, Any]
+    signal_id: str = field(default_factory=lambda: f"SIG_{uuid.uuid4().hex[:12]}")
     correlation_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     validated: bool = False
     compliance_check: Dict[str, bool] = field(default_factory=dict)
@@ -106,6 +107,11 @@ class GovernanceOrchestrator:
                 "type": AgentType.FRAUD_TRUST,
                 "permissions": ["analyze_patterns", "score_risk"],
                 "restrictions": ["no_user_banning", "no_listing_removal"]
+            },
+            "marketplace_engine": {
+                "type": AgentType.FRAUD_TRUST,
+                "permissions": ["validate_listings", "analyze_patterns", "score_risk"],
+                "restrictions": ["no_user_banning", "no_price_setting"]
             },
             "communication_agent": {
                 "type": AgentType.COMMUNICATION,
@@ -190,7 +196,7 @@ class GovernanceOrchestrator:
             AgentType.MARKET_INTELLIGENCE: ["market_analysis", "price_prediction", "trend_alert"],
             AgentType.TRADE_RECOMMENDATION: ["buyer_match", "price_suggestion", "listing_alert"],
             AgentType.LOGISTICS_OPTIMIZATION: ["route_optimization", "cost_analysis", "delivery_prediction"],
-            AgentType.FRAUD_TRUST: ["fraud_alert", "risk_score", "credibility_analysis"],
+            AgentType.FRAUD_TRUST: ["fraud_alert", "risk_score", "credibility_analysis", "listing_validation"],
             AgentType.COMMUNICATION: ["translation", "summary", "negotiation_assist"]
         }
 

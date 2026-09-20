@@ -1,0 +1,82 @@
+# ==============================================
+# WORLD-MINE AI AGENT EXECUTIVE DOCKERFILE
+# Production-grade multi-stage build
+# ==============================================
+
+# Stage 1: Builder
+FROM python:3.11-slim as builder
+
+# Set build arguments
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
+
+# Stage 2: Runtime
+FROM python:3.11-slim as runtime
+
+# Set labels
+LABEL maintainer="World-Mine Platform Team" \
+      org.opencontainers.image.title="World-Mine AI Executive Agent" \
+      org.opencontainers.image.description="Production-grade AI executive agent for mineral trading platform" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${VCS_REF}"
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r worldmine && useradd -r -g worldmine worldmine
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy agent code
+COPY ai_agents/ /app/ai_agents
+COPY core/ /app/core
+RUN chown -R worldmine:worldmine /app
+
+# Set working directory
+WORKDIR /app
+
+# Switch to non-root user
+USER worldmine
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=15s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Expose port
+EXPOSE 8001
+
+# Run executive agent
+CMD ["python", "-m", "ai_agents.executive_suite.ceo_agent"]

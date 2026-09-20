@@ -5,6 +5,7 @@ World-class mineral classification and search system
 """
 
 import asyncio
+import os
 import json
 import uuid
 from datetime import datetime, timedelta
@@ -55,6 +56,7 @@ class PurityGrade(Enum):
     HIGH_PURITY = "high_purity"  # 99.9-99.99%
     ULTRA_HIGH_PURITY = "ultra_high_purity"  # 99.99-99.999%
     RESEARCH_GRADE = "research_grade"  # 99.999%+
+    INVESTMENT = "investment"  # investment-grade bullion/purity
 
 class CrystalSystem(Enum):
     """Crystal systems for minerals"""
@@ -917,6 +919,716 @@ class MineralDatabase:
         
         return minerals
     
+    def _get_base_metals(self) -> Dict[str, MineralMetadata]:
+        """Get base metals data"""
+        minerals = {}
+
+        # Copper
+        minerals['Cu'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Copper",
+            symbol="Cu",
+            category=MineralCategory.BASE_METALS,
+            chemical_formula="Cu",
+            molar_mass=63.55,
+            density=8.96,
+            hardness=3.0,
+            melting_point=1084.62,
+            boiling_point=2562.0,
+            electrical_conductivity=5.96e7,
+            thermal_conductivity=401.0,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["reddish", "orange", "brown"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["chalcopyrite", "bornite", "malachite"],
+            major_producing_countries=["Chile", "Peru", "China", "DR Congo", "USA"],
+            global_reserves=1000000000.0,
+            annual_production=22000000.0,
+            price_history_50y=self._generate_price_history_50y("Cu", 1974, 2024, 1.5, 10.0),
+            current_price_usd_per_kg=9.5,
+            price_volatility=0.2,
+            market_cap_usd=1.4e12,
+            trading_volume_daily=3000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY],
+            standard_units=["kg", "g", "lb", "metric_ton"],
+            industrial_uses=["electrical wiring", "plumbing", "electronics", "construction", "transport"],
+            applications=["cables", "motors", "heat exchangers", "alloys"],
+            substitutes=["aluminum", "fiber optics"],
+            recycling_rate=0.35,
+            environmental_impact="medium",
+            extraction_difficulty="easy",
+            strategic_importance="high",
+            regulatory_status=["conflict_minerals_regulation"],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        # Aluminum
+        minerals['Al'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Aluminum",
+            symbol="Al",
+            category=MineralCategory.BASE_METALS,
+            chemical_formula="Al",
+            molar_mass=26.98,
+            density=2.70,
+            hardness=2.75,
+            melting_point=660.32,
+            boiling_point=2470.0,
+            electrical_conductivity=3.5e7,
+            thermal_conductivity=237.0,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["silvery white", "gray"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["bauxite", "laterite"],
+            major_producing_countries=["China", "India", "Russia", "Canada", "Australia"],
+            global_reserves=30000000000.0,
+            annual_production=70000000.0,
+            price_history_50y=self._generate_price_history_50y("Al", 1974, 2024, 1.0, 3.5),
+            current_price_usd_per_kg=2.4,
+            price_volatility=0.18,
+            market_cap_usd=1.6e12,
+            trading_volume_daily=5000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY],
+            standard_units=["kg", "g", "lb", "metric_ton"],
+            industrial_uses=["transport", "packaging", "construction", "electrical transmission"],
+            applications=["aircraft", "cans", "window frames", "power lines"],
+            substitutes=["copper", "steel", "composites"],
+            recycling_rate=0.55,
+            environmental_impact="medium",
+            extraction_difficulty="medium",
+            strategic_importance="medium",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        # Zinc
+        minerals['Zn'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Zinc",
+            symbol="Zn",
+            category=MineralCategory.BASE_METALS,
+            chemical_formula="Zn",
+            molar_mass=65.38,
+            density=7.14,
+            hardness=2.5,
+            melting_point=419.53,
+            boiling_point=907.0,
+            electrical_conductivity=1.69e7,
+            thermal_conductivity=116.0,
+            crystal_system=CrystalSystem.HEXAGONAL,
+            color=["bluish silver", "gray"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="medium",
+            common_ores=["sphalerite", "smithsonite", "calamine"],
+            major_producing_countries=["China", "Peru", "Australia", "India", "USA"],
+            global_reserves=220000000.0,
+            annual_production=13000000.0,
+            price_history_50y=self._generate_price_history_50y("Zn", 1974, 2024, 0.8, 3.5),
+            current_price_usd_per_kg=2.8,
+            price_volatility=0.19,
+            market_cap_usd=3.6e11,
+            trading_volume_daily=1200000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY],
+            standard_units=["kg", "g", "lb", "metric_ton"],
+            industrial_uses=["galvanizing", "alloys", "chemicals", "batteries"],
+            applications=["steel coating", "brass", "die casting", "skin ointments"],
+            substitutes=["aluminum coatings", "cadmium"],
+            recycling_rate=0.3,
+            environmental_impact="medium",
+            extraction_difficulty="easy",
+            strategic_importance="medium",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_industrial_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get industrial minerals data"""
+        minerals = {}
+
+        # Quartz (silica)
+        minerals['SiO2'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Quartz (Silica)",
+            symbol="SiO2",
+            category=MineralCategory.INDUSTRIAL_MINERALS,
+            chemical_formula="SiO2",
+            molar_mass=60.08,
+            density=2.65,
+            hardness=7.0,
+            melting_point=1673.0,
+            boiling_point=2590.0,
+            electrical_conductivity=1e-12,
+            thermal_conductivity=6.5,
+            crystal_system=CrystalSystem.TRIGONAL,
+            color=["colorless", "white", "milky", "purple"],
+            luster="vitreous",
+            transparency="transparent",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["quartz veins", "pegmatites", "sand deposits"],
+            major_producing_countries=["USA", "Russia", "Brazil", "China", "Norway"],
+            global_reserves=1000000000000.0,
+            annual_production=500000000.0,
+            price_history_50y=self._generate_price_history_50y("SiO2", 1974, 2024, 0.1, 0.5),
+            current_price_usd_per_kg=0.3,
+            price_volatility=0.1,
+            market_cap_usd=5e10,
+            trading_volume_daily=20000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY, PurityGrade.ULTRA_HIGH_PURITY],
+            standard_units=["kg", "g", "metric_ton"],
+            industrial_uses=["glass making", "semiconductors", "optics", "foundry sand"],
+            applications=["solar panels", "lab glassware", "fiberglass", "abrasives"],
+            substitutes=["ceramics", "polymer glass"],
+            recycling_rate=0.2,
+            environmental_impact="low",
+            extraction_difficulty="easy",
+            strategic_importance="high",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_gemstones(self) -> Dict[str, MineralMetadata]:
+        """Get gemstones data"""
+        minerals = {}
+
+        # Diamond
+        minerals['C_diamond'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Diamond",
+            symbol="C",
+            category=MineralCategory.GEMSTONES,
+            chemical_formula="C",
+            molar_mass=12.011,
+            density=3.52,
+            hardness=10.0,
+            melting_point=3550.0,
+            boiling_point=None,
+            electrical_conductivity=1e-13,
+            thermal_conductivity=2200.0,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["colorless", "yellow", "brown", "blue"],
+            luster="adamantine",
+            transparency="transparent",
+            fluorescence=True,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["kimberlite pipes", "alluvial deposits"],
+            major_producing_countries=["Russia", "Botswana", "DR Congo", "Australia", "Canada"],
+            global_reserves=1200000.0,
+            annual_production=26000.0,
+            price_history_50y=self._generate_price_history_50y("Diamond", 1974, 2024, 5000.0, 60000.0),
+            current_price_usd_per_kg=20000.0,
+            price_volatility=0.15,
+            market_cap_usd=3.0e11,
+            trading_volume_daily=500.0,
+            purity_grades_available=[PurityGrade.REFINED, PurityGrade.HIGH_PURITY, PurityGrade.INVESTMENT],
+            standard_units=["g", "carat"],
+            industrial_uses=["cutting tools", "abrasives", "drill bits", "polishing"],
+            applications=["jewelry", "industrial machining", "heat sinks", "optics"],
+            substitutes=["cubic zirconia", "synthetic diamond", "moissanite"],
+            recycling_rate=0.05,
+            environmental_impact="medium",
+            extraction_difficulty="hard",
+            strategic_importance="high",
+            regulatory_status=["kimberley_process"],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+    def _get_nuclear_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get nuclear minerals data"""
+        minerals = {}
+
+        # Uranium
+        minerals['U'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Uranium",
+            symbol="U",
+            category=MineralCategory.NUCLEAR_MINERALS,
+            chemical_formula="U",
+            molar_mass=238.03,
+            density=19.1,
+            hardness=6.0,
+            melting_point=1132.2,
+            boiling_point=4131.0,
+            electrical_conductivity=3.5e6,
+            thermal_conductivity=27.5,
+            crystal_system=CrystalSystem.ORTHORHOMBIC,
+            color=["silvery gray", "gray"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=True,
+            toxicity_level="high",
+            common_ores=["uraninite", "pitchblende", "carnotite"],
+            major_producing_countries=["Kazakhstan", "Canada", "Australia", "Namibia", "Niger"],
+            global_reserves=8000000.0,
+            annual_production=55000.0,
+            price_history_50y=self._generate_price_history_50y("U", 1974, 2024, 30.0, 180.0),
+            current_price_usd_per_kg=180.0,
+            price_volatility=0.25,
+            market_cap_usd=1.0e11,
+            trading_volume_daily=2000.0,
+            purity_grades_available=[PurityGrade.REFINED, PurityGrade.HIGH_PURITY, PurityGrade.ULTRA_HIGH_PURITY, PurityGrade.RESEARCH_GRADE],
+            standard_units=["kg", "metric_ton"],
+            industrial_uses=["nuclear fuel", "power generation", "radiation shielding"],
+            applications=["nuclear reactors", "medical isotopes", "research", "naval propulsion"],
+            substitutes=["thorium", "fossil fuels", "renewables"],
+            recycling_rate=0.05,
+            environmental_impact="high",
+            extraction_difficulty="very_hard",
+            strategic_importance="critical",
+            regulatory_status=["nuclear_non_proliferation", "iaea_safeguards"],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_platinum_group_metals(self) -> Dict[str, MineralMetadata]:
+        """Get platinum group metals data"""
+        minerals = {}
+
+        # Platinum
+        minerals['Pt'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Platinum",
+            symbol="Pt",
+            category=MineralCategory.PLATINUM_GROUP,
+            chemical_formula="Pt",
+            molar_mass=195.08,
+            density=21.45,
+            hardness=3.5,
+            melting_point=1768.3,
+            boiling_point=3825.0,
+            electrical_conductivity=9.43e6,
+            thermal_conductivity=71.6,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["silvery white", "gray white"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["sperrylite", "cooperite", "native platinum"],
+            major_producing_countries=["South Africa", "Russia", "Zimbabwe", "Canada", "USA"],
+            global_reserves=80000.0,
+            annual_production=190.0,
+            price_history_50y=self._generate_price_history_50y("Pt", 1974, 2024, 5000.0, 50000.0),
+            current_price_usd_per_kg=30000.0,
+            price_volatility=0.2,
+            market_cap_usd=3.0e11,
+            trading_volume_daily=800.0,
+            purity_grades_available=[PurityGrade.REFINED, PurityGrade.HIGH_PURITY, PurityGrade.ULTRA_HIGH_PURITY, PurityGrade.INVESTMENT],
+            standard_units=["kg", "g", "oz", "metric_ton"],
+            industrial_uses=["catalytic converters", "jewelry", "electronics", "chemical catalysis"],
+            applications=["fuel cells", "dental alloys", "lab equipment", "electrodes"],
+            substitutes=["palladium", "rhodium"],
+            recycling_rate=0.3,
+            environmental_impact="medium",
+            extraction_difficulty="very_hard",
+            strategic_importance="critical",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+    def _get_semiconductor_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get semiconductor minerals data"""
+        minerals = {}
+
+        # Silicon (semiconductor grade)
+        minerals['Si'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Silicon (Semiconductor Grade)",
+            symbol="Si",
+            category=MineralCategory.SEMICONDUCTOR_MINERALS,
+            chemical_formula="Si",
+            molar_mass=28.09,
+            density=2.33,
+            hardness=6.5,
+            melting_point=1414.0,
+            boiling_point=3265.0,
+            electrical_conductivity=1.56e-3,
+            thermal_conductivity=149.0,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["dark gray", "blue tint"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["quartzite", "silica sand"],
+            major_producing_countries=["China", "Russia", "USA", "Norway", "Brazil"],
+            global_reserves=800000000000.0,
+            annual_production=8000000.0,
+            price_history_50y=self._generate_price_history_50y("Si", 1974, 2024, 1.0, 3.0),
+            current_price_usd_per_kg=2.0,
+            price_volatility=0.12,
+            market_cap_usd=2.0e11,
+            trading_volume_daily=5000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY, PurityGrade.ULTRA_HIGH_PURITY, PurityGrade.RESEARCH_GRADE],
+            standard_units=["kg", "g", "metric_ton"],
+            industrial_uses=["semiconductors", "solar cells", "alloys", "silicones"],
+            applications=["microchips", "photovoltaics", "coatings", "sealants"],
+            substitutes=["germanium", "gallium arsenide"],
+            recycling_rate=0.1,
+            environmental_impact="low",
+            extraction_difficulty="medium",
+            strategic_importance="high",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_strategic_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get strategic minerals data"""
+        minerals = {}
+
+        # Tungsten
+        minerals['W'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Tungsten",
+            symbol="W",
+            category=MineralCategory.STRATEGIC_MINERALS,
+            chemical_formula="W",
+            molar_mass=183.84,
+            density=19.25,
+            hardness=7.5,
+            melting_point=3422.0,
+            boiling_point=5555.0,
+            electrical_conductivity=1.89e7,
+            thermal_conductivity=173.0,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["steel gray", "silver"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["wolframite", "scheelite"],
+            major_producing_countries=["China", "Vietnam", "Russia", "Bolivia", "Rwanda"],
+            global_reserves=3400000.0,
+            annual_production=83000.0,
+            price_history_50y=self._generate_price_history_50y("W", 1974, 2024, 10.0, 45.0),
+            current_price_usd_per_kg=35.0,
+            price_volatility=0.15,
+            market_cap_usd=5.0e10,
+            trading_volume_daily=20000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY],
+            standard_units=["kg", "g", "metric_ton"],
+            industrial_uses=["cemented carbides", "alloys", "electrodes", "radiation shielding"],
+            applications=["drill bits", "armor plating", "filaments", "counterweights"],
+            substitutes=["molybdenum", "depleted uranium"],
+            recycling_rate=0.35,
+            environmental_impact="medium",
+            extraction_difficulty="hard",
+            strategic_importance="critical",
+            regulatory_status=["conflict_minerals_regulation"],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+    def _get_construction_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get construction minerals data"""
+        minerals = {}
+
+        # Limestone (calcium carbonate)
+        minerals['CaCO3'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Limestone (Calcium Carbonate)",
+            symbol="CaCO3",
+            category=MineralCategory.CONSTRUCTION_MINERALS,
+            chemical_formula="CaCO3",
+            molar_mass=100.09,
+            density=2.71,
+            hardness=3.0,
+            melting_point=825.0,
+            boiling_point=None,
+            electrical_conductivity=1e-11,
+            thermal_conductivity=2.5,
+            crystal_system=CrystalSystem.TRIGONAL,
+            color=["white", "gray", "cream"],
+            luster="vitreous",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["limestone quarries", "marble deposits", "chalk beds"],
+            major_producing_countries=["China", "India", "USA", "Brazil", "Egypt"],
+            global_reserves=10000000000000.0,
+            annual_production=4000000000.0,
+            price_history_50y=self._generate_price_history_50y("CaCO3", 1974, 2024, 0.01, 0.05),
+            current_price_usd_per_kg=0.02,
+            price_volatility=0.08,
+            market_cap_usd=2.0e11,
+            trading_volume_daily=50000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL],
+            standard_units=["kg", "metric_ton"],
+            industrial_uses=["cement production", "concrete aggregate", "lime production", "construction stone"],
+            applications=["buildings", "roads", "cement", "glass manufacturing"],
+            substitutes=["recycled concrete", "fly ash"],
+            recycling_rate=0.15,
+            environmental_impact="medium",
+            extraction_difficulty="easy",
+            strategic_importance="low",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_energy_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get energy minerals data"""
+        minerals = {}
+
+        # Coal
+        minerals['C_coal'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Coal",
+            symbol="C_coal",
+            category=MineralCategory.ENERGY_MINERALS,
+            chemical_formula="C",
+            molar_mass=12.01,
+            density=1.3,
+            hardness=2.5,
+            melting_point=3550.0,
+            boiling_point=None,
+            electrical_conductivity=1.0,
+            thermal_conductivity=0.3,
+            crystal_system=CrystalSystem.AMORPHOUS,
+            color=["black", "dark brown"],
+            luster="dull",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="medium",
+            common_ores=["coal seams", "lignite beds", "anthracite deposits"],
+            major_producing_countries=["China", "India", "Indonesia", "USA", "Australia"],
+            global_reserves=1070000000000.0,
+            annual_production=8000000000.0,
+            price_history_50y=self._generate_price_history_50y("Coal", 1974, 2024, 0.03, 0.15),
+            current_price_usd_per_kg=0.09,
+            price_volatility=0.2,
+            market_cap_usd=1.0e12,
+            trading_volume_daily=100000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL],
+            standard_units=["kg", "metric_ton"],
+            industrial_uses=["power generation", "steel making", "cement kilns"],
+            applications=["electricity", "coke production", "coal chemicals"],
+            substitutes=["natural gas", "renewables", "nuclear"],
+            recycling_rate=0.0,
+            environmental_impact="high",
+            extraction_difficulty="easy",
+            strategic_importance="medium",
+            regulatory_status=["carbon_emissions"],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+    def _get_chemical_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get chemical minerals data"""
+        minerals = {}
+
+        # Halite (rock salt)
+        minerals['NaCl'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Halite (Rock Salt)",
+            symbol="NaCl",
+            category=MineralCategory.CHEMICAL_MINERALS,
+            chemical_formula="NaCl",
+            molar_mass=58.44,
+            density=2.17,
+            hardness=2.5,
+            melting_point=801.0,
+            boiling_point=1465.0,
+            electrical_conductivity=1e-10,
+            thermal_conductivity=6.5,
+            crystal_system=CrystalSystem.CUBIC,
+            color=["colorless", "white", "pink", "blue"],
+            luster="vitreous",
+            transparency="transparent",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["salt domes", "seawater evaporation", "rock salt beds"],
+            major_producing_countries=["China", "USA", "India", "Germany", "Australia"],
+            global_reserves=1000000000000.0,
+            annual_production=280000000.0,
+            price_history_50y=self._generate_price_history_50y("NaCl", 1974, 2024, 0.02, 0.08),
+            current_price_usd_per_kg=0.05,
+            price_volatility=0.05,
+            market_cap_usd=3.0e10,
+            trading_volume_daily=30000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY],
+            standard_units=["kg", "g", "metric_ton"],
+            industrial_uses=["chlor-alkali chemicals", "de-icing", "food processing", "water treatment"],
+            applications=["chlorine production", "caustic soda", "PVC manufacturing"],
+            substitutes=["potassium chloride"],
+            recycling_rate=0.0,
+            environmental_impact="low",
+            extraction_difficulty="easy",
+            strategic_importance="low",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_agricultural_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get agricultural minerals data"""
+        minerals = {}
+
+        # Phosphate rock (apatite)
+        minerals['P'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Phosphate Rock (Apatite)",
+            symbol="P",
+            category=MineralCategory.AGRICULTURAL_MINERALS,
+            chemical_formula="Ca5(PO4)3(F,Cl,OH)",
+            molar_mass=30.97,
+            density=3.2,
+            hardness=5.0,
+            melting_point=1650.0,
+            boiling_point=None,
+            electrical_conductivity=1e-10,
+            thermal_conductivity=1.0,
+            crystal_system=CrystalSystem.HEXAGONAL,
+            color=["green", "brown", "white"],
+            luster="vitreous",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="low",
+            common_ores=["sedimentary phosphate deposits", "igneous apatite", "guano deposits"],
+            major_producing_countries=["China", "Morocco", "USA", "Russia", "Tunisia"],
+            global_reserves=71000000000.0,
+            annual_production=220000000.0,
+            price_history_50y=self._generate_price_history_50y("P", 1974, 2024, 0.05, 0.15),
+            current_price_usd_per_kg=0.12,
+            price_volatility=0.12,
+            market_cap_usd=5.0e10,
+            trading_volume_daily=10000000.0,
+            purity_grades_available=[PurityGrade.INDUSTRIAL, PurityGrade.COMMERCIAL, PurityGrade.REFINED],
+            standard_units=["kg", "metric_ton"],
+            industrial_uses=["fertilizers", "animal feed", "food additives"],
+            applications=["DAP fertilizer", "phosphoric acid", "TSP fertilizer"],
+            substitutes=["recycled phosphorus", "compost"],
+            recycling_rate=0.1,
+            environmental_impact="medium",
+            extraction_difficulty="easy",
+            strategic_importance="critical",
+            regulatory_status=[],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
+    def _get_specialized_minerals(self) -> Dict[str, MineralMetadata]:
+        """Get specialized minerals data (aerospace, medical, defense applications)"""
+        minerals = {}
+
+        # Beryllium
+        minerals['Be'] = MineralMetadata(
+            id=str(uuid.uuid4()),
+            name="Beryllium",
+            symbol="Be",
+            category=MineralCategory.STRATEGIC_MINERALS,
+            chemical_formula="Be",
+            molar_mass=9.012,
+            density=1.85,
+            hardness=5.5,
+            melting_point=1287.0,
+            boiling_point=2470.0,
+            electrical_conductivity=2.5e7,
+            thermal_conductivity=216.0,
+            crystal_system=CrystalSystem.HEXAGONAL,
+            color=["steel gray", "silvery"],
+            luster="metallic",
+            transparency="opaque",
+            fluorescence=False,
+            magnetism=False,
+            radioactivity=False,
+            toxicity_level="high",
+            common_ores=["beryl", "bertrandite", "phenacite"],
+            major_producing_countries=["USA", "Kazakhstan", "China", "Mozambique", "Brazil"],
+            global_reserves=100000.0,
+            annual_production=280.0,
+            price_history_50y=self._generate_price_history_50y("Be", 1974, 2024, 200.0, 900.0),
+            current_price_usd_per_kg=750.0,
+            price_volatility=0.18,
+            market_cap_usd=2.0e9,
+            trading_volume_daily=300.0,
+            purity_grades_available=[PurityGrade.COMMERCIAL, PurityGrade.REFINED, PurityGrade.HIGH_PURITY],
+            standard_units=["kg", "g"],
+            industrial_uses=["aerospace components", "X-ray windows", "nuclear applications", "alloys"],
+            applications=["satellites", "mirrors", "fighter aircraft", "medical imaging"],
+            substitutes=["aluminum", "titanium", "graphite"],
+            recycling_rate=0.4,
+            environmental_impact="high",
+            extraction_difficulty="very_hard",
+            strategic_importance="critical",
+            regulatory_status=["osha_beryllium_standard"],
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+
+        return minerals
+
+
     def _generate_price_history_50y(self, symbol: str, start_year: int, end_year: int, min_price: float, max_price: float) -> Dict[str, float]:
         """Generate 50-year price history for mineral"""
         price_history = {}
@@ -1033,10 +1745,19 @@ class MineralDatabase:
                 if mineral.strategic_importance == 'critical':
                     stats['critical_minerals'] += 1
             
-            # Price and production totals
-            total_price += mineral.current_price_usd_per_kg
-            total_reserves += mineral.global_reserves
-            total_production += mineral.annual_production
+            # Price and production totals (defensive against malformed entries)
+            try:
+                total_price += float(mineral.current_price_usd_per_kg)
+            except (TypeError, ValueError):
+                pass
+            try:
+                total_reserves += float(mineral.global_reserves)
+            except (TypeError, ValueError):
+                pass
+            try:
+                total_production += float(mineral.annual_production)
+            except (TypeError, ValueError):
+                pass
         
         # Calculate averages
         if len(self.minerals_data) > 0:
@@ -1047,6 +1768,16 @@ class MineralDatabase:
         
         return stats
     
+    async def get_latest_news(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get the latest mineral market news.
+
+        News aggregation lives in the dedicated service
+        (`backend/services/mineral_news_service.py`); until a shared news
+        store is wired into this database service, this returns an empty
+        list so callers always receive a list type.
+        """
+        return []
+
     async def initialize_database(self):
         """Initialize mineral database with all minerals"""
         print("🌍 Initializing mineral database...")

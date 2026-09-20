@@ -18,6 +18,12 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# These load tests target a deployed API host and simulate very high traffic
+# (100k users / 1M rps). They are skipped by default; run them with
+# RUN_STAGING_TESTS=1.
+pytestmark = pytest.mark.staging
+
+
 class LoadTestConfig:
     """Load test configuration"""
     BASE_URL = "https://api.dedan.ai"

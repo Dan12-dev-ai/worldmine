@@ -89,19 +89,11 @@ class APIDocumentationTester:
             'version_history': [
                 'v1.0.0',
                 'v1.1.0',
-                'versioning_strategy': 'semantic',
-                'version_in_url': True,
-                'backward_compatibility': True,
-                'deprecation_policy': True,
-                'version_history': [
-                    'v1.0.0',
-                    'v1.1.0',
-                    'v1.2.0',
-                    'v1.2.1',
-                    'v1.2.2',
-                    'v1.2.3'
-                ]
-            }
+                'v1.2.0',
+                'v1.2.1',
+                'v1.2.2',
+                'v1.2.3'
+            ]
         }
         
         # Check versioning best practices

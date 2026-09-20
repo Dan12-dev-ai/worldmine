@@ -14,6 +14,8 @@ import {
   Filter, Search, ChevronDown,
   MapPin, Phone, Mail, Globe
 } from 'lucide-react';
+import { MarketplaceService } from '../lib/api/marketplace';
+import { MineralListing as ApiMineralListing } from '../lib/types';
 
 interface MineralListing {
   id: string;
@@ -106,152 +108,84 @@ const MarketplaceInterface: React.FC = () => {
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'listings' | 'messages' | 'offers'>('listings');
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data generation
-  const generateMockListings = (): MineralListing[] => {
-    return [
-      {
-        id: '1',
-        title: 'Premium Gold Bullion - 99.99% Purity',
-        description: 'High-purity gold bullion bars, professionally refined and certified. Perfect for investment and industrial use. Each bar is individually weighed and certified by independent laboratories.',
-        mineralType: 'gold',
-        weight: 1000,
-        purity: 99.99,
-        price: 65000,
-        currency: 'USD',
-        seller: {
-          id: 'seller_1',
-          name: 'GoldMaster Trading Ltd',
-          rating: 4.8,
-          totalTransactions: 1247,
-          successRate: 98.7,
-          verified: true,
-          location: 'Zurich, Switzerland',
-          responseTime: '< 2 hours'
-        },
-        certifications: {
-          assayReport: '/certificates/assay_1.pdf',
-          originDocument: '/certificates/origin_1.pdf',
-          qualityCertificate: '/certificates/quality_1.pdf',
-          authenticityReport: '/certificates/authenticity_1.pdf'
-        },
-        images: [
-          '/images/gold_bullion_1.jpg',
-          '/images/gold_bullion_2.jpg',
-          '/images/gold_bullion_3.jpg',
-          '/images/gold_bullion_4.jpg'
-        ],
-        videos: ['/videos/gold_bullion_demo.mp4'],
-        location: {
-          country: 'Switzerland',
-          city: 'Zurich',
-          coordinates: { lat: 47.3769, lng: 8.5417 }
-        },
-        shipping: {
-          available: true,
-          cost: 250,
-          estimatedDelivery: '3-5 business days',
-          methods: ['DHL Express', 'FedEx', 'UPS Worldwide']
-        },
-        inventory: {
-          available: 850,
-          total: 1000,
-          lowStockThreshold: 100
-        },
-        negotiable: true,
-        bulkPricing: {
-          minQuantity: 100,
-          discount: 0.05
-        },
-        createdAt: '2024-03-15T10:30:00Z',
-        views: 1547,
-        watchlist: false
-      },
-      {
-        id: '2',
-        title: 'Industrial Grade Lithium Carbonate',
-        description: 'High-purity lithium carbonate suitable for battery manufacturing and energy storage applications. Sourced from verified mining operations with complete traceability.',
-        mineralType: 'lithium',
-        weight: 5000,
-        purity: 99.5,
-        price: 12000,
-        currency: 'USD',
-        seller: {
-          id: 'seller_2',
-          name: 'LithiumTech Minerals',
-          rating: 4.6,
-          totalTransactions: 892,
-          successRate: 96.2,
-          verified: true,
-          location: 'Santiago, Chile',
-          responseTime: '< 4 hours'
-        },
-        certifications: {
-          assayReport: '/certificates/assay_2.pdf',
-          originDocument: '/certificates/origin_2.pdf',
-          qualityCertificate: '/certificates/quality_2.pdf',
-          authenticityReport: '/certificates/authenticity_2.pdf'
-        },
-        images: [
-          '/images/lithium_1.jpg',
-          '/images/lithium_2.jpg'
-        ],
-        videos: [],
-        location: {
-          country: 'Chile',
-          city: 'Santiago',
-          coordinates: { lat: -33.4489, lng: -70.6693 }
-        },
-        shipping: {
-          available: true,
-          cost: 450,
-          estimatedDelivery: '5-7 business days',
-          methods: ['DHL Express', 'Maersk Shipping', 'Local Pickup']
-        },
-        inventory: {
-          available: 25000,
-          total: 30000,
-          lowStockThreshold: 5000
-        },
-        negotiable: false,
-        bulkPricing: {
-          minQuantity: 1000,
-          discount: 0.08
-        },
-        createdAt: '2024-03-14T15:45:00Z',
-        views: 892,
-        watchlist: false
-      }
-    ];
-  };
-
-  const generateMockMessages = (): Message[] => {
-    return [
-      {
-        id: '1',
-        senderId: 'seller_1',
-        senderName: 'GoldMaster Trading Ltd',
-        content: 'Thank you for your interest in our gold bullion. We can offer a 2% discount for orders over 50 ounces. Would you like to discuss further?',
-        timestamp: '2024-03-15T14:30:00Z',
-        isEncrypted: true,
-        read: false
-      },
-      {
-        id: '2',
-        senderId: 'buyer_1',
-        senderName: 'You',
-        content: 'I\'m interested in purchasing 100 ounces. Can you provide more details about the shipping options to the United States?',
-        timestamp: '2024-03-15T13:15:00Z',
-        isEncrypted: true,
-        read: true
-      }
-    ];
-  };
-
-  // Initialize data
+  // Fetch real listings from API
   useEffect(() => {
-    setListings(generateMockListings());
-    setMessages(generateMockMessages());
+    const fetchListings = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await MarketplaceService.getListings({
+          page: 1,
+          page_size: 50
+        });
+        
+        // Transform API response to component format
+        const transformedListings: MineralListing[] = response.data.map((apiListing: ApiMineralListing) => ({
+          id: apiListing.id,
+          title: apiListing.title,
+          description: apiListing.description,
+          mineralType: apiListing.mineral_type,
+          weight: apiListing.quantity,
+          purity: parseFloat(apiListing.quality_grade) || 99.9,
+          price: apiListing.unit_price,
+          currency: apiListing.currency,
+          seller: {
+            id: apiListing.seller_id,
+            name: 'Seller', // TODO: Fetch seller details
+            rating: 4.5,
+            totalTransactions: 100,
+            successRate: 95.0,
+            verified: true,
+            location: apiListing.country || 'Unknown',
+            responseTime: '< 24 hours'
+          },
+          certifications: {
+            assayReport: apiListing.certifications?.assay_report || '',
+            originDocument: apiListing.certifications?.origin_document || '',
+            qualityCertificate: apiListing.certifications?.quality_certificate || '',
+            authenticityReport: apiListing.certifications?.authenticity_report || ''
+          },
+          images: apiListing.images || [],
+          videos: [],
+          location: {
+            country: apiListing.country || 'Unknown',
+            city: apiListing.city || 'Unknown',
+            coordinates: { lat: apiListing.latitude || 0, lng: apiListing.longitude || 0 }
+          },
+          shipping: {
+            available: apiListing.shipping?.available || true,
+            cost: apiListing.shipping?.cost || 0,
+            estimatedDelivery: apiListing.shipping?.estimated_delivery || '7-14 days',
+            methods: apiListing.shipping?.methods || ['standard']
+          },
+          inventory: {
+            available: apiListing.quantity,
+            total: apiListing.quantity,
+            lowStockThreshold: 10
+          },
+          negotiable: true,
+          bulkPricing: {
+            minQuantity: 100,
+            discount: 5
+          },
+          createdAt: apiListing.created_at,
+          views: 0,
+          watchlist: false
+        }));
+        
+        setListings(transformedListings);
+        setFilteredListings(transformedListings);
+      } catch (err) {
+        setError('Failed to load listings. Please try again later.');
+        console.error('Error fetching listings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
   }, []);
 
   // Filter listings

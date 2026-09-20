@@ -7,6 +7,7 @@ Better than Bloomberg, Reuters, and MarketWatch for mineral intelligence
 import asyncio
 import json
 import uuid
+import os
 import aiohttp
 import feedparser
 from datetime import datetime, timezone, timedelta
@@ -20,7 +21,22 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import openai
 from textblob import TextBlob
-import newspaper
+try:
+    import newspaper
+except ImportError:  # optional scraping dependency; degrade gracefully
+    class _NewspaperStub:
+        class Article:
+            def __init__(self, url="", **kwargs):
+                self.url = url
+                self.text = ""
+
+            def download(self):
+                raise RuntimeError("newspaper3k is not installed")
+
+            def parse(self):
+                pass
+
+    newspaper = _NewspaperStub()
 from bs4 import BeautifulSoup
 import requests
 
@@ -138,8 +154,14 @@ class MineralNewsService:
         self.engine = create_engine(DATABASE_URL)
         self.SessionLocal = sessionmaker(bind=self.engine)
         
-        # AI configuration
-        self.openai_client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        # AI configuration (client is optional so the service can run
+        # without an OPENAI_API_KEY — analysis endpoints degrade gracefully)
+        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_client = (
+            openai.OpenAI(api_key=self.openai_api_key)
+            if self.openai_api_key
+            else None
+        )
         
         # News sources configuration
         self.news_sources = self._initialize_news_sources()
@@ -434,12 +456,41 @@ class MineralNewsService:
         
         return mentioned
     
+    # Domain keyword signals: in mining/trading news, explicit positive or
+    # negative terms outweigh the naive TextBlob lexicon.
+    POSITIVE_KEYWORDS = {
+        "highs", "surge", "surges", "surged", "rally", "rallies", "record",
+        "growth", "profit", "gains", "discovery", "breakthrough", "expansion",
+        "success", "upgrade", "boost", "rising", "jumps", "soars", "wins",
+        "approval", "partnership", "record high"
+    }
+    NEGATIVE_KEYWORDS = {
+        "challenges", "decline", "declines", "declined", "fall", "falls",
+        "fell", "crisis", "conflict", "smuggling", "delay", "delays",
+        "protest", "protests", "strike", "drop", "drops", "loss", "losses",
+        "risk", "shortage", "shutdown", "suspension", "sanctions", "lawsuit",
+        "fraud", "collapse", "bankruptcy", "warns", "warning", "cuts"
+    }
+
     def _analyze_sentiment(self, text: str) -> SentimentAnalysis:
-        """Analyze sentiment of text"""
+        """Analyze sentiment of text (TextBlob polarity + domain keywords)"""
         try:
             blob = TextBlob(text)
             polarity = blob.sentiment.polarity
-            
+
+            # Adjust polarity with domain-specific keyword signals
+            text_lower = text.lower()
+            positive_hits = sum(1 for kw in self.POSITIVE_KEYWORDS if kw in text_lower)
+            negative_hits = sum(1 for kw in self.NEGATIVE_KEYWORDS if kw in text_lower)
+            polarity += 0.25 * positive_hits - 0.25 * negative_hits
+
+            # Explicit keyword majority overrides the naive lexicon, which is
+            # unreliable on mining/trading phrasing (e.g. "significant challenges").
+            if negative_hits > positive_hits:
+                return SentimentAnalysis.VERY_NEGATIVE if negative_hits >= 2 else SentimentAnalysis.NEGATIVE
+            if positive_hits > negative_hits:
+                return SentimentAnalysis.VERY_POSITIVE if positive_hits >= 2 else SentimentAnalysis.POSITIVE
+
             if polarity > 0.5:
                 return SentimentAnalysis.VERY_POSITIVE
             elif polarity > 0.1:

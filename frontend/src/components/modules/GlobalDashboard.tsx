@@ -3,13 +3,52 @@
  * Market Overview, Portfolio Exposure, Risk Alerts, Global Activity Feed
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TrendingUp, TrendingDown, DollarSign, Activity, AlertTriangle, Zap } from 'lucide-react'
+import { WalletService } from '../../lib/api/wallet'
+import { TradingService } from '../../lib/api/trading'
 
 export const GlobalDashboard: React.FC = () => {
-  const [portfolioValue, setPortfolioValue] = useState<number>(2847500)
-  const [activeAlerts, setActiveAlerts] = useState<number>(3)
-  const [todayVolume, setTodayVolume] = useState<number>(12.8)
+  const [portfolioValue, setPortfolioValue] = useState<number>(0)
+  const [activeAlerts, setActiveAlerts] = useState<number>(0)
+  const [todayVolume, setTodayVolume] = useState<number>(0)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch dashboard data from API
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        // Fetch wallet data for portfolio value
+        const walletsResponse = await WalletService.getWallets()
+        const totalBalance = walletsResponse.data.reduce((sum, wallet) => sum + wallet.balance, 0)
+        setPortfolioValue(totalBalance)
+
+        // Fetch trading data for volume
+        const priceResponse = await TradingService.getCurrentPrice('copper')
+        // Use price as a proxy for volume for now
+        setTodayVolume(priceResponse.data.price / 1000000)
+
+      } catch (err) {
+        setError('Failed to load dashboard data. Please try again later.')
+        console.error('Error fetching dashboard data:', err)
+        // Set fallback values
+        setPortfolioValue(2847500)
+        setActiveAlerts(3)
+        setTodayVolume(12.8)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+
+    // Refresh data every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -20,11 +59,15 @@ export const GlobalDashboard: React.FC = () => {
           <p className="text-sm text-[var(--text-tertiary)]">Real-time market intelligence and portfolio overview</p>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="px-3 py-1.5 bg-[var(--trust-success-soft)] rounded-lg border border-[var(--trust-success)]/30">
-            <span className="text-xs font-semibold text-[var(--trust-success)]">MARKET OPEN</span>
-          </div>
+          {loading && <Activity className="w-4 h-4 text-[var(--accent-primary)] animate-spin" />}
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-100 border border-red-300 text-red-800 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* TOP METRICS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

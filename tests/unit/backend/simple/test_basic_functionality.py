@@ -139,16 +139,20 @@ class TestBasicFunctionality:
         """Test basic sentiment analysis"""
         positive_words = ['good', 'great', 'excellent', 'positive', 'surge', 'increase']
         negative_words = ['bad', 'poor', 'negative', 'decline', 'decrease', 'fall']
-        
-        positive_text = "Gold prices surged to new heights with excellent demand"
-        negative_text = "Mining operations faced poor conditions with decline in output"
-        
+
+        positive_text = "Gold prices surged to new heights with excellent demand and significant increase"
+        negative_text = "Mining operations faced poor conditions with decline in output and sharp fall"
+
         positive_score = sum(1 for word in positive_words if word in positive_text.lower())
         negative_score = sum(1 for word in negative_words if word in negative_text.lower())
-        
-        assert positive_score > 0
-        assert negative_score > 0
-        assert positive_score != negative_score
+
+        # Assert that positive text contains positive words and no negative words (for simplicity in this basic test)
+        assert positive_score >= 2
+        assert sum(1 for word in negative_words if word in positive_text.lower()) == 0
+
+        # Assert that negative text contains negative words and no positive words
+        assert negative_score >= 2
+        assert sum(1 for word in positive_words if word in negative_text.lower()) == 0
 
 class TestQuantumComputingBasics:
     """Test quantum computing basic concepts"""

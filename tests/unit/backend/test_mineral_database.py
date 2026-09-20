@@ -12,7 +12,7 @@ import os
 # Add backend to path
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../../backend'))
 
-from database.mineral_database import MineralDatabase, MineralCategory, PurityGrade
+from backend.database.mineral_database import MineralDatabase, MineralCategory, PurityGrade
 
 class TestMineralDatabase:
     """Test suite for MineralDatabase class"""
@@ -20,8 +20,8 @@ class TestMineralDatabase:
     @pytest.fixture
     def mineral_db(self):
         """Create test mineral database instance"""
-        with patch('database.mineral_database.create_engine'), \
-             patch('database.mineral_database.redis.Redis'):
+        with patch('backend.database.mineral_database.create_engine'), \
+             patch('backend.database.mineral_database.redis.Redis'):
             return MineralDatabase()
     
     def test_initialization(self, mineral_db):
@@ -85,7 +85,7 @@ class TestMineralDatabase:
         
         assert isinstance(battery_minerals, dict)
         # Should contain lithium
-        assert 'Li' in battery_minals or 'lithium' in str(battery_minerals).lower()
+        assert 'Li' in battery_minerals or 'lithium' in str(battery_minerals).lower()
 
 if __name__ == "__main__":
     pytest.main([__file__])

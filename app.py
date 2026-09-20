@@ -29,6 +29,10 @@ from services.esg import ESGScoringService
 
 # Import existing services
 from services.marketplace.listings import ListingService
+from services.video_negotiation import VideoNegotiationService
+from services.iot_sensor import IoTSensorService
+from services.ecx_compliance import ECXComplianceService
+
 
 # Import existing MarketNewsAgent and StateGraph
 # from main_simple import SimpleMarketNewsAgent
@@ -56,9 +60,6 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     logger.info("?? DEDAN Mine Unified Architecture starting up...")
     
-    # Initialize health monitoring
-    await startup_health_monitor()
-    
     # Initialize services
     listing_service = ListingService()
     esg_service = ESGScoringService()
@@ -75,8 +76,6 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Cleanup health monitoring
-    await shutdown_health_monitor()
     logger.info("?? DEDAN Mine Unified Architecture shutting down...")
 
 # Create FastAPI application
@@ -88,6 +87,37 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+# Import and register API routers (must happen after `app` exists)
+from backend.api.marketplace import router as marketplace_router
+from backend.api.wallet import router as wallet_router
+from backend.api.escrow import router as escrow_router
+from backend.api.ai_agents import router as ai_agents_router
+from backend.api.ai_router import router as ai_router_router
+from backend.api.ai_governance import router as ai_governance_router
+from backend.api.ai_monitoring import router as ai_monitoring_router
+from backend.api.payment import router as payment_router
+from backend.api.payment import payment_compat_router
+from backend.api.contracts import router as contracts_router
+from backend.api.logistics import router as logistics_router
+from backend.api.notifications import router as notifications_router
+from backend.api.admin import router as admin_router
+from backend.websocket.gateway import router as websocket_router
+
+app.include_router(marketplace_router)
+app.include_router(wallet_router)
+app.include_router(escrow_router)
+app.include_router(ai_agents_router)
+app.include_router(ai_router_router)
+app.include_router(ai_governance_router)
+app.include_router(ai_monitoring_router)
+app.include_router(payment_router)
+app.include_router(payment_compat_router)
+app.include_router(contracts_router)
+app.include_router(logistics_router)
+app.include_router(notifications_router)
+app.include_router(admin_router)
+app.include_router(websocket_router)
 
 # Configure CORS for Vercel frontend
 app.add_middleware(
@@ -104,10 +134,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# Add trusted host middleware
+# Add trusted host middleware (includes TestClient host for integration tests)
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=["dedan-mine.vercel.app", "*.vercel.app", "localhost", "127.0.0.1"]
+    allowed_hosts=["dedan-mine.vercel.app", "*.vercel.app", "localhost", "127.0.0.1", "testserver", "*.testserver", "testserver.local"]
 )
 
 # Add gzip compression

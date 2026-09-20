@@ -14,11 +14,10 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Database connection - USE ENVIRONMENT VARIABLES IN PRODUCTION
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://neondb_owner:npg_A67fiOvTqLRl@ep-dry-scene-ang0ac1w.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require"
-)
+# Database connection - ENVIRONMENT VARIABLES REQUIRED IN PRODUCTION
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required. Set it in your environment or .env file.")
 
 async def setup_database():
     """Setup database with required tables and indexes"""
