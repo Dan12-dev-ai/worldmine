@@ -65,17 +65,18 @@ const GlobalSwarmDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // MUI Chip's `color` prop expects a palette key (not a raw hex value).
   const getHealthColor = (status) => {
     switch (status) {
-      case 'operational': return '#4caf50';
-      case 'warning': return '#ff9800';
-      case 'error': return '#f44336';
-      default: return '#9e9e9e';
+      case 'operational': return 'success';
+      case 'warning': return 'warning';
+      case 'error': return 'error';
+      default: return 'default';
     }
   };
 
   const getAgentStatusColor = (active) => {
-    return active ? '#4caf50' : '#9e9e9e';
+    return active ? 'success' : 'default';
   };
 
   return (

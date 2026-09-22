@@ -173,3 +173,4 @@ ssl/
 
 # Infrastructure secrets
 infrastructure/
+.aider*

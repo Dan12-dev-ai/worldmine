@@ -1,10 +1,21 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { compression } from 'vite-plugin-compression2'
 import path from 'path'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Vite does not polyfill `process.env`, but this codebase (and
+  // web-client/.env.example) uses CRA-style REACT_APP_* variables. Expose the
+  // loaded vars through `process.env` so the existing code keeps working.
+  const env = loadEnv(mode, process.cwd(), '')
+  const appEnv = Object.fromEntries(
+    Object.entries(env).filter(
+      ([key]) => key.startsWith('VITE_') || key.startsWith('REACT_APP_')
+    )
+  )
+
+  return {
   plugins: [
     react(),
     VitePWA({
@@ -42,6 +53,34 @@ export default defineConfig({
   root: '.',
   base: '/',
   publicDir: 'public',
+  // Allow REACT_APP_* to be read via import.meta.env as well as process.env
+  envPrefix: ['VITE_', 'REACT_APP_'],
+  define: {
+    'process.env': JSON.stringify({ NODE_ENV: mode, ...appEnv }),
+  },
+  // NOTE: the old `esbuild.loader: 'jsx'` override existed only for the legacy
+  // src/index.js entry (JSX inside .js). main.tsx is now the entry and all
+  // legacy screens are .jsx (natively handled by Vite + @vitejs/plugin-react).
+
+  // Public review tunnels (pinggy / cloudflared / localtunnel) — the hostname
+  // is dynamic per session, so allow the tunnel domains as subdomain wildcards.
+  preview: {
+    port: 4173,
+    strictPort: true,
+    allowedHosts: ['.pinggy.net', '.run.pinggy-free.link', '.trycloudflare.com', '.loca.lt'],
+    // The review build is served on the same origin as the API it calls: the
+    // preview server proxies /api (and the websocket gateway) to the FastAPI app
+    // so a tunnelled link exercises real endpoints instead of showing transport
+    // errors. Override the target with VITE_API_TARGET when the API lives elsewhere.
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_TARGET || 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        ws: true,
+      },
+    },
+  },
+
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -49,7 +88,8 @@ export default defineConfig({
     minify: 'terser',
     sourcemap: false,
     rollupOptions: {
-      input: './src/index.js',
+      // Standard HTML entry — index.html loads /src/main.tsx (TS successor of index.js)
+      input: './index.html',
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -73,6 +113,13 @@ export default defineConfig({
     host: true
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', '@supabase/supabase-js']
+    include: ['react', 'react-dom', '@supabase/supabase-js'],
+    esbuildOptions: {
+      // Dependency scanning also has to allow JSX in .js files.
+      loader: {
+        '.js': 'jsx',
+      },
+    },
+  }
   }
 })

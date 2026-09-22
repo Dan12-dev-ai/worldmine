@@ -8,7 +8,7 @@ import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import './index.css';
-import { useAnalytics } from './components/AnalyticsProvider';
+import { useAnalytics, trackError as trackAnalyticsError } from './components/AnalyticsProvider';
 import GlobalSwarmDashboard from './components/GlobalSwarmDashboard';
 import PlanetaryUI from './components/PlanetaryUI';
 import LocalizationDemo from './components/LocalizationDemo';
@@ -92,8 +92,9 @@ class ErrorBoundaryWrapper extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    const { error: trackError } = useAnalytics();
-    trackError(error, {
+    // NOTE: hooks cannot be called from a class lifecycle method, so report
+    // through the module-level analytics function instead of useAnalytics().
+    trackAnalyticsError(error, {
       component: 'RouteErrorBoundary',
       errorInfo,
     });

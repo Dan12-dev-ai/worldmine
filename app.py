@@ -102,6 +102,13 @@ from backend.api.contracts import router as contracts_router
 from backend.api.logistics import router as logistics_router
 from backend.api.notifications import router as notifications_router
 from backend.api.admin import router as admin_router
+# Trading + mineral-news routers exist and import cleanly; they were simply never
+# mounted, which left /api/trading/* and /api/v2/mineral-news/* returning 404 for
+# the frontend workspace modules. Mounting them here closes that contract gap.
+# NOTE: backend.api.kyc is intentionally NOT mounted — it imports cv2 (OpenCV),
+# which is not installed in this environment.
+from backend.api.trading import router as trading_router
+from backend.api.mineral_news_api import router as mineral_news_router
 from backend.websocket.gateway import router as websocket_router
 
 app.include_router(marketplace_router)
@@ -117,6 +124,8 @@ app.include_router(contracts_router)
 app.include_router(logistics_router)
 app.include_router(notifications_router)
 app.include_router(admin_router)
+app.include_router(trading_router)
+app.include_router(mineral_news_router)
 app.include_router(websocket_router)
 
 # Configure CORS for Vercel frontend

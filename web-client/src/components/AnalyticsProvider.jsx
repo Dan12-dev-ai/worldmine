@@ -324,6 +324,7 @@ export {
   trackPerformance,
   trackError,
   trackUser,
+  useAnalytics,
 };
 
 export default AnalyticsProvider;

@@ -14,10 +14,14 @@
     "build:analyze": "vite build --mode analyze"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^5.18.0",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
+    "@sentry/react": "^7.120.4",
     "@supabase/supabase-js": "^2.38.0",
     "@types/node": "^20.0.0",
     "@vercel/speed-insights": "^2.0.0",
@@ -30,8 +34,11 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^17.0.1",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.30.6",
     "recharts": "^2.8.0",
     "tailwind-merge": "^1.14.0",
+    "three": "^0.160.1",
     "zustand": "^4.4.1"
   },
   "devDependencies": {

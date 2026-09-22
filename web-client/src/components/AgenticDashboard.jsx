@@ -54,10 +54,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
-  Minimize2,
-  Fullscreen,
-  Grid3x3,
-  Layers3
+  Minimize2
 } from 'lucide-react';
 
 // Mock data generator

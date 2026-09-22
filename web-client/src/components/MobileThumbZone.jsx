@@ -18,7 +18,7 @@ import {
     ArrowLeft,
     Plus,
     Minus,
-    SwapHorizontal,
+    ArrowLeftRight,
     ShoppingCart,
     PieChart,
     Bell,
@@ -88,7 +88,7 @@ const MobileThumbZone = ({
             haptic: 'light'
         },
         trade: {
-            icon: SwapHorizontal,
+            icon: ArrowLeftRight,
             label: 'Trade',
             color: 'yellow',
             bgGradient: 'from-yellow-500 to-orange-600',
