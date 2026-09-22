@@ -1,84 +1,96 @@
-/**
- * DEDAN Mine - Global Stylesheet
- *
- * Tailwind layers plus base theming for the dark Planetary/Spatial glass UI.
- */
+/* ============================================================
+   WORLD MINE — BASE STYLESHEET (v2)
+   Institutional Mineral Commerce + Geological Intelligence
+   ============================================================ */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tokens and system CSS are loaded explicitly by main.tsx:
+   - design-system/tokens.css
+   - design-system/components.css
+   - design-system/shell.css
+   This file provides ONLY base resets and app-wide overrides. */
 
-/* ---------------------------------------------------------------------------
-   Base / reset
-   --------------------------------------------------------------------------- */
-:root {
-  --dedan-bg: #0a0e27;
-  --dedan-accent: #00d4ff;
-  --dedan-text: #e8eaf6;
-  color-scheme: dark;
-}
+/* ── Box model ── */
+*, *::before, *::after { box-sizing: border-box; }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-}
+/* ── Base resets ── */
+html, body { margin: 0; padding: 0; min-height: 100%; }
 
 body {
-  background-color: var(--dedan-bg);
-  color: var(--dedan-text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial,
-    sans-serif;
+  background-color: var(--wm-obsidian);
+  color: var(--wm-porcelain);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-#root {
-  min-height: 100vh;
-}
+#root { min-height: 100vh; }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
-}
+/* ── Media elements ── */
+img, svg, video, canvas { max-width: 100%; height: auto; display: block; }
 
-img,
-svg,
-video,
-canvas {
-  max-width: 100%;
-}
+/* ── Lists ── */
+u, ol { margin: 0; padding: 0; }
+u li, ol li { list-style: none; }
 
-/* ---------------------------------------------------------------------------
-   Scrollbars
-   --------------------------------------------------------------------------- */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* ── Forms base ── */
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
 }
+button { cursor: pointer; border: 0; background: none; padding: 0; }
+input, select, textarea { background: none; border: 0; }
 
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04);
-}
+/* ── Remove default link styles ── */
+a { color: inherit; text-decoration: none; }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.35);
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 212, 255, 0.55);
-}
-
-/* ---------------------------------------------------------------------------
-   Accessibility
-   --------------------------------------------------------------------------- */
+/* ── Focus ring (global) ── */
 :focus-visible {
-  outline: 2px solid var(--dedan-accent);
+  outline: 2px solid var(--wm-gold);
   outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 162, 39, 0.22);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 162, 39, 0.45); }
+
+/* ── Selection ── */
+::selection { background: rgba(201, 162, 39, 0.22); color: var(--wm-porcelain); }
+
+/* ── Paragraph spacing ── */
+p { margin: 0; }
+
+/* ── Smooth image loading ── */
+img { transition: opacity var(--dur-base) var(--ease-out); }
+img[data-loading="true"] { opacity: 0; }
+
+/* ── Utility: visually hidden but accessible ── */
+.wm-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Reduced motion override for heavy components ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

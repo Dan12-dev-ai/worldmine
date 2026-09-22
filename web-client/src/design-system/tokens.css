@@ -1,103 +1,191 @@
 /* ============================================================
    WORLD MINE DESIGN SYSTEM — FOUNDATION TOKENS
-   "Institutional Luxury + Geological Intelligence"
+   "Institutional Mineral Commerce + Geological Intelligence"
+   v2 — complete system
    ============================================================ */
 :root {
-  /* Color — geological neutrals */
-  --wm-obsidian: #0B0D10;
-  --wm-charcoal: #131519;
-  --wm-stone: #1B1E23;
-  --wm-slate: #2A2E36;
-  --wm-ash: #8B9096;
-  --wm-fog: #B9BEC4;
-  --wm-porcelain: #F2F3F1;
+  /* ── Color · geological neutrals ── */
+  --wm-obsidian:   #0B0D10;
+  --wm-charcoal:   #131519;
+  --wm-stone:      #1B1E23;
+  --wm-slate:      #2A2E36;
+  --wm-ash:        #8B9096;
+  --wm-fog:        #B9BEC4;
+  --wm-porcelain:  #F2F3F1;
 
-  /* Accents — restrained mineral metals */
-  --wm-gold: #C9A227;
-  --wm-gold-soft: #D9BC6A;
-  --wm-gold-dim: rgba(201, 162, 39, 0.14);
-  --wm-platinum: #C8CCD2;
-  --wm-copper: #B0764A;
+  /* ── Surface hierarchy ── */
+  --surface-card:    var(--wm-charcoal);
+  --surface-raised:  var(--wm-stone);
+  --surface-overlay: #1E2228;
+  --surface-inverse: #0E1014;
 
-  /* Status — controlled semantics */
-  --wm-verified: #3FA47A;
+  /* ── Accents · restrained mineral metals ── */
+  --wm-gold:          #C9A227;
+  --wm-gold-soft:     #D9BC6A;
+  --wm-gold-deep:     #9E7E18;
+  --wm-gold-dim:      rgba(201, 162, 39, 0.12);
+  --wm-gold-line:     rgba(201, 162, 39, 0.40);
+  --wm-gold-bg:       rgba(201, 162, 39, 0.07);
+  --wm-platinum:      #C8CCD2;
+  --wm-copper:        #B0764A;
+
+  /* ── Status · semantic ── */
+  --wm-verified:      #3FA47A;
   --wm-verified-line: rgba(63, 164, 122, 0.45);
-  --wm-verified-bg: rgba(63, 164, 122, 0.12);
-  --wm-warning: #D08A3E;
-  --wm-danger: #C4433B;
-  --wm-danger-line: rgba(196, 67, 59, 0.45);
-  --wm-danger-bg: rgba(196, 67, 59, 0.12);
-  --wm-info: #5E8CB8;
+  --wm-verified-bg:   rgba(63, 164, 122, 0.12);
+  --wm-amber:         #D08A3E;
+  --wm-amber-line:    rgba(208, 138, 62, 0.45);
+  --wm-amber-bg:      rgba(208, 138, 62, 0.12);
+  --wm-red:           #C4433B;
+  --wm-red-line:      rgba(196, 67, 59, 0.45);
+  --wm-red-bg:        rgba(196, 67, 59, 0.12);
+  --wm-info:          #5E8CB8;
+  --wm-info-line:     rgba(94, 140, 184, 0.40);
+  --wm-info-bg:       rgba(94, 140, 184, 0.10);
 
-  /* Typography */
+  /* ── Typography ── */
   --font-display: 'Fraunces', 'Georgia', serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
-  --text-display: clamp(2.4rem, 5vw, 3.9rem);
-  --text-h1: clamp(1.9rem, 3.4vw, 2.6rem);
-  --text-h2: clamp(1.45rem, 2.4vw, 1.9rem);
-  --text-h3: 1.0625rem;
-  --text-body: 0.9375rem;
-  --text-small: 0.8125rem;
+  --font-body:    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --text-display: clamp(2.6rem, 5.5vw, 4rem);
+  --text-h1:      clamp(1.9rem, 3.4vw, 2.6rem);
+  --text-h2:      clamp(1.45rem, 2.4vw, 1.9rem);
+  --text-h3:      1.0625rem;
+  --text-body:    0.9375rem;
+  --text-small:   0.8125rem;
   --text-caption: 0.71875rem;
+  --text-data:    0.8125rem;
+  --text-tabular: 0.75rem;
 
-  /* Spacing — 4/8 system */
-  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
-  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
-  --space-9: 96px;
-  --gutter: clamp(16px, 4vw, 48px);
-  --container: 1440px;
+  /* ── Spacing · 4px base grid ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+  --space-9:  96px;
+  --space-10: 128px;
 
-  /* Radius — institutional, not childish */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  --gutter:        clamp(16px, 4vw, 48px);
+  --container:     1440px;
+  --container-max: 1440px;
+
+  /* ── Radius · controlled, institutional ── */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   10px;
+  --radius-xl:   14px;
   --radius-pill: 999px;
 
-  /* Elevation — subtle metallic depth */
+  /* ── Elevation ── */
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.02);
   --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --shadow-3: 0 16px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
   --shadow-gold: 0 0 0 1px rgba(201, 162, 39, 0.35);
 
-  /* Motion — measured, purposeful */
-  --motion-fast: 120ms;
-  --motion-base: 200ms;
-  --motion-slow: 420ms;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* ── Motion ── */
+  --dur-fast:   120ms;
+  --dur-base:   200ms;
+  --dur-slow:   420ms;
+  --dur-enter:  280ms;
+  --ease-out:   cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* Z-index scale */
-  --z-base: 0; --z-sticky: 100; --z-overlay: 200; --z-modal: 300; --z-toast: 400;
+  /* ── Z-index scale ── */
+  --z-base:     0;
+  --z-sticky:   100;
+  --z-overlay:  200;
+  --z-modal:    300;
+  --z-toast:    400;
 
-  /* Borders */
+  /* ── Borders ── */
   --border-hairline: 1px solid var(--wm-slate);
-  --border-gold: 1px solid rgba(201, 162, 39, 0.4);
-
-  /* Status line/bkg helpers */
-  --wm-warning-line: rgba(208, 138, 62, 0.45);
-  --wm-warning-bg: rgba(208, 138, 62, 0.12);
-  --wm-gold-line: rgba(201, 162, 39, 0.45);
-  --wm-gold-bg: rgba(201, 162, 39, 0.1);
-  --wm-neutral-line: var(--wm-slate);
-  --wm-neutral-bg: var(--wm-stone);
+  --border-default:  1px solid var(--wm-slate);
+  --border-strong:   1px solid var(--wm-stone);
+  --border-gold:     1px solid rgba(201, 162, 39, 0.40);
+  --border-verified: 1px solid rgba(63, 164, 122, 0.45);
+  --border-hairline-strong: 1px solid rgba(42, 46, 54, 0.7);
 }
 
-/* ---------- Base ---------- */
+/* ────────────────────────────────────────────────
+   BASE
+   ──────────────────────────────────────────────── */
 html { scroll-behavior: smooth; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
+
 body {
+  margin: 0;
   background:
-    radial-gradient(1100px 500px at 85% -10%, rgba(201, 162, 39, 0.05), transparent 60%),
+    radial-gradient(1200px 520px at 82% -8%, rgba(201, 162, 39, 0.045), transparent 60%),
+    radial-gradient(700px 360px at 8% 108%, rgba(58, 140, 140, 0.04), transparent 60%),
     var(--wm-obsidian);
   color: var(--wm-porcelain);
   font-family: var(--font-body);
   font-size: var(--text-body);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
-h1, h2, h3 { font-family: var(--font-display); font-weight: 550; letter-spacing: -0.01em; color: var(--wm-porcelain); }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--wm-porcelain);
+  line-height: 1.15;
+  margin: 0;
+}
+
+p { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+code, .wm-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-data);
+  color: var(--wm-fog);
+}
+
+img { display: block; max-width: 100%; }
+
+/* ── Selection ── */
+::selection {
+  background: rgba(201, 162, 39, 0.22);
+  color: var(--wm-porcelain);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 162, 39, 0.22);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 162, 39, 0.45); }
+
+/* ── Focus ── */
+:focus-visible {
+  outline: 2px solid var(--wm-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Smooth image loading ── */
+img { transition: opacity var(--dur-base) var(--ease-out); }
+img[data-loading="true"] { opacity: 0; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--wm-gold); outline-offset: 2px; border-radius: 2px; }
 .wm-mono { font-family: var(--font-mono); }

@@ -1,0 +1,56 @@
+# Cache-Control headers for Vercel Edge Caching
+# Optimize for 90% CDN offload and zero system distraction
+
+# Static assets - Long cache for performance
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+/static/images/*
+  Cache-Control: public, max-age=31536000, immutable
+/static/css/*
+  Cache-Control: public, max-age=31536000, immutable
+/static/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# API endpoints - Short cache for real-time data
+/api/*
+  Cache-Control: public, max-age=5, s-maxage=10, stale-while-revalidate=30
+/api/health*
+  Cache-Control: public, max-age=10, s-maxage=30, stale-while-revalidate=60
+/api/health/summary*
+  Cache-Control: public, max-age=30, s-maxage=60, stale-while-revalidate=120
+/api/health/live*
+  Cache-Control: public, max-age=5, s-maxage=10, stale-while-revalidate=30
+
+# HTML pages - Moderate cache with revalidation
+/*.html
+  Cache-Control: public, max-age=300, s-maxage=600, stale-while-revalidate=1800
+/index.html
+  Cache-Control: public, max-age=300, s-maxage=600, stale-while-revalidate=1800
+
+# Manifest and service worker
+/manifest.json
+  Cache-Control: public, max-age=86400, immutable
+/sw.js
+  Cache-Control: public, max-age=0, no-cache
+
+# Fonts and icons
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# SEO and meta files
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+/robots.txt
+  Cache-Control: public, max-age=86400
+/favicon.ico
+  Cache-Control: public, max-age=86400
+
+# Security headers
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload

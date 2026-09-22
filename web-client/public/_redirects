@@ -1,0 +1,22 @@
+# URL redirects for SEO and user experience
+# Handle old URLs and ensure proper routing
+
+# Home page redirects
+/ /index.html 200
+
+# API redirects for backward compatibility
+/api/v1/* /api/:splat 200
+
+# Common redirects
+/dashboard /index.html 200
+/trading /index.html 200
+/wallet /index.html 200
+/profile /index.html 200
+
+# Legacy redirects
+/market /index.html 200
+/minerals /index.html 200
+/compliance /index.html 200
+
+# Error page handling
+/* /index.html 200
