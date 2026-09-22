@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 import json
 from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
@@ -63,6 +64,18 @@ async def metrics_endpoint():
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "metrics_summary": observability.get_metrics_summary()
+    }
+
+
+@app.get("/api/health")
+async def api_health_check():
+    """API health check endpoint for frontend keep-alive"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "3.0.0",
+        "service": "DEDAN Mine API",
+        "message": "DEDAN Mine API is operational"
     }
 
 # Import swarm API for global domination

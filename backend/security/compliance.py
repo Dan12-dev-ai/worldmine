@@ -22,6 +22,7 @@ from cryptography.hazmat.backends import default_backend
 import jwt
 from pydantic import BaseModel, validator
 import logging
+import uuid
 
 # Initialize clients
 supabase: Client = create_client(

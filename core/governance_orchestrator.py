@@ -12,6 +12,7 @@ from enum import Enum
 
 from core.production_foundation import audit_log, risk_engine
 from core.event_driven_architecture import event_bus, EventType, Event
+import signal
 
 logger = logging.getLogger(__name__)
 

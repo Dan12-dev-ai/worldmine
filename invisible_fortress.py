@@ -24,6 +24,7 @@ from cryptography.hazmat.backends import default_backend
 import os
 import jwt
 from typing import Union
+import math
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

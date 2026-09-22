@@ -11,6 +11,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 import sqlite3
+import os
+import platform
 
 @dataclass
 class TaskOpportunity:

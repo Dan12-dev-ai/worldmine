@@ -14,6 +14,7 @@ from unittest.mock import Mock, AsyncMock
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from services.predictive_fraud_ai import PredictiveFraudAI, predictive_fraud_ai, RiskLevel
+import signal
 
 @pytest.fixture
 async def fraud_ai():

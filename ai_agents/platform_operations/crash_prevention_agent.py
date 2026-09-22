@@ -11,6 +11,7 @@ from dataclasses import dataclass
 import json
 import numpy as np
 from ..agent_framework import BaseAIAgent, AgentRole, MessageType, Priority, AgentCapability
+import warnings
 
 @dataclass
 class CrashEvent:

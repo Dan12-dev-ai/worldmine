@@ -44,6 +44,8 @@ from sqlalchemy import create_engine, event, pool
 from sqlalchemy.orm import sessionmaker, Session
 import structlog
 from contextlib import asynccontextmanager
+import secrets
+import signal
 
 # ============================================================================
 # LOGGING & OBSERVABILITY
@@ -252,7 +254,7 @@ class DatabasePool:
     """Production-grade database connection pool"""
     
     def __init__(self, db_url: str = None):
-        self.db_url = db_url or secrets.get("DATABASE_URL")
+        self.db_url = db_url or os.getenv("DATABASE_URL")
         self.pool = None
         self.engine = None
         self.SessionLocal = None
@@ -307,7 +309,7 @@ class RedisClient:
     async def initialize(self):
         """Initialize Redis connection"""
         self.redis = await aioredis.from_url(
-            secrets.get("REDIS_URL"),
+            os.getenv("REDIS_URL"),
             encoding="utf8",
             decode_responses=True,
             max_connections=100,

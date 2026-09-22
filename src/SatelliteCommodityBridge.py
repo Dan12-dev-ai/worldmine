@@ -31,6 +31,8 @@ from shapely.geometry import Point, Polygon
 import folium
 import plotly.graph_objects as go
 import plotly.express as px
+import os
+import signal
 
 class CommodityType(Enum):
     """Commodity types for satellite monitoring"""

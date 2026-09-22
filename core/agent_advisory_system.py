@@ -19,6 +19,7 @@ from enum import Enum
 import structlog
 
 from core.production_foundation import (
+import signal
     AgentSignal,
     AgentSignalType,
     OrderSide,

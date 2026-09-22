@@ -13,6 +13,7 @@ import numpy as np
 
 from core.governance_orchestrator import governance_orchestrator, AgentSignal, AgentType
 from core.event_driven_architecture import event_bus, EventType, Event
+import signal
 
 logger = logging.getLogger(__name__)
 

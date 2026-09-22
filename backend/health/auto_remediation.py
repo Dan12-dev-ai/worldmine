@@ -22,6 +22,7 @@ from pathlib import Path
 import hashlib
 import hmac
 import base64
+import os
 
 # Configure logging
 logging.basicConfig(

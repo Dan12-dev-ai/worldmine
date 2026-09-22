@@ -23,6 +23,7 @@ import sendgrid
 from sendgrid.helpers.mail import Mail
 import os
 import re
+import email
 
 # Initialize Supabase and Redis clients
 supabase: Client = create_client(

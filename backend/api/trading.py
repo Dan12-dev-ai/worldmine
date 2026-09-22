@@ -13,6 +13,7 @@ import uuid
 import json
 import redis
 import os
+import hashlib
 from datetime import datetime, timedelta
 import aioredis
 import websockets

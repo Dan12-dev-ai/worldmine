@@ -22,6 +22,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 import joblib
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

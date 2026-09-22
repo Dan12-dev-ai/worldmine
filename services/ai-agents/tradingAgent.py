@@ -14,6 +14,7 @@ from models import AIAgent, AgentAction, Listing, User
 from database import get_db
 from federated_learning.localTraining import LocalModelTrainer
 from federated_learning.modelAggregation import ModelAggregator
+import signal
 
 @dataclass
 class TradingStrategy:

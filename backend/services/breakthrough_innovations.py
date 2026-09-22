@@ -42,6 +42,7 @@ from textblob import TextBlob
 import networkx as nx
 import geopy
 from geopy.distance import geodesic
+import os
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_A67fiOvTqLRl@ep-dry-scene-ang0ac1w.c-6.us-east-1.aws.neon.tech/neondb")

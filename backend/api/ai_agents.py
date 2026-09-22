@@ -130,7 +130,6 @@ async def list_agents_compat():
 
 
 @router.get("/", response_model=List[Agent])
-@router.get("/agents", response_model=List[Agent])
 async def list_agents(
     agent_type: Optional[str] = None,
     is_active: Optional[bool] = None,

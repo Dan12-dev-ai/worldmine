@@ -413,7 +413,7 @@ export const getTranslation = (key, language = detectLanguage()) => {
 };
 
 // Hook for using translations
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export const useTranslation = () => {
   const [language, setLanguage] = useState(detectLanguage());

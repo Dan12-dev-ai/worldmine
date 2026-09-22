@@ -34,9 +34,36 @@ from services.iot_sensor import IoTSensorService
 from services.ecx_compliance import ECXComplianceService
 
 
-# Import existing MarketNewsAgent and StateGraph
-# from main_simple import SimpleMarketNewsAgent
-# from main import MarketNewsAgent, StateGraph
+# ESG auditor singleton used by /api/v4/esg/* endpoints
+from services.esg_auditor import esg_auditor
+
+# Optional agents — guarded so missing optional deps (supabase SDK, DB) never
+# prevent the app from booting. Endpoints check for None and return 503.
+import sys
+import importlib.util
+
+try:  # main_simple requires the supabase SDK + env vars at import time
+    from main_simple import SimpleMarketNewsAgent
+except Exception:  # pragma: no cover - optional dependency
+    SimpleMarketNewsAgent = None
+
+
+def _load_trading_agent_cls():
+    """Load AutonomousTradingAgent from services/ai-agents (hyphenated dir)."""
+    services_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "services")
+    if services_dir not in sys.path:
+        sys.path.insert(0, services_dir)
+    module_path = os.path.join(services_dir, "ai-agents", "tradingAgent.py")
+    spec = importlib.util.spec_from_file_location("worldmine_trading_agent", module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.AutonomousTradingAgent
+
+
+try:
+    AutonomousTradingAgent = _load_trading_agent_cls()
+except Exception:  # pragma: no cover - optional dependency
+    AutonomousTradingAgent = None
 
 # Import production health monitoring
 # from production_health import (
@@ -736,6 +763,11 @@ async def legacy_browse_listings(request: Request):
 @app.get("/api/v1/analyze")
 async def legacy_market_analysis(request: Request):
     """Legacy market analysis endpoint"""
+    if SimpleMarketNewsAgent is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Market news agent unavailable: supabase SDK or env vars not configured",
+        )
     try:
         # Use SimpleMarketNewsAgent for lightweight analysis
         agent = SimpleMarketNewsAgent()
@@ -744,8 +776,9 @@ async def legacy_market_analysis(request: Request):
         query = request.query_params.get("q", "mining market")
         limit = int(request.query_params.get("limit", 10))
         
-        # Perform basic analysis
-        analysis = await agent.get_basic_news(query, limit)
+        # get_basic_news() takes no args; apply the requested limit here
+        news = await agent.get_basic_news()
+        analysis = news[:limit]
         
         return {
             "success": True,
@@ -901,6 +934,8 @@ async def get_tax_calculation_history(transaction_id: str):
 @app.post("/api/v1/ai-agents/create")
 async def create_ai_agent(request: Request):
     """Create autonomous trading agent"""
+    if AutonomousTradingAgent is None:
+        raise HTTPException(status_code=503, detail="Autonomous trading agent unavailable (missing optional dependencies)")
     try:
         data = await request.json()
         
@@ -915,14 +950,24 @@ async def create_ai_agent(request: Request):
         
     except Exception as e:
         logger.error(f"Error creating AI agent: {e}")
+        if "connection to server" in str(e) or "OperationalError" in str(e):
+            raise HTTPException(status_code=503, detail="Database unavailable: autonomous trading agents require PostgreSQL")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/ai-agents/{agent_id}/analyze")
 async def analyze_market(agent_id: str, request: Request):
     """AI market analysis"""
+    if AutonomousTradingAgent is None:
+        raise HTTPException(status_code=503, detail="Autonomous trading agent unavailable (missing optional dependencies)")
     try:
-        data = await request.json()
+        # GET body is optional — fall back to empty payload / query params
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
         gem_types = data.get("gem_types")
+        if gem_types is None and "gem_types" in request.query_params:
+            gem_types = [g.strip() for g in request.query_params["gem_types"].split(",") if g.strip()]
         
         agent = AutonomousTradingAgent(agent_id, "")
         result = await agent.analyze_market(gem_types)
@@ -931,11 +976,15 @@ async def analyze_market(agent_id: str, request: Request):
         
     except Exception as e:
         logger.error(f"Error in market analysis: {e}")
+        if "connection to server" in str(e) or "OperationalError" in str(e):
+            raise HTTPException(status_code=503, detail="Database unavailable: autonomous trading agents require PostgreSQL")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/ai-agents/{agent_id}/bid")
 async def autonomous_bid(agent_id: str, request: Request):
     """Place autonomous bid"""
+    if AutonomousTradingAgent is None:
+        raise HTTPException(status_code=503, detail="Autonomous trading agent unavailable (missing optional dependencies)")
     try:
         data = await request.json()
         
@@ -949,71 +998,120 @@ async def autonomous_bid(agent_id: str, request: Request):
         
     except Exception as e:
         logger.error(f"Error in autonomous bid: {e}")
+        if "connection to server" in str(e) or "OperationalError" in str(e):
+            raise HTTPException(status_code=503, detail="Database unavailable: autonomous trading agents require PostgreSQL")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ===== VIDEO NEGOTIATION ENDPOINTS =====
 
 @app.post("/api/v1/video/schedule")
 async def schedule_video_session(request: Request):
-    """Schedule video negotiation or live auction"""
+    """Schedule video negotiation or live auction (creates a negotiation room)."""
     try:
         data = await request.json()
         video_service = request.app.state.video_service
-        
-        result = await video_service.schedule_video_session(
-            host_id=data.get("host_id"),
-            listing_id=data.get("listing_id"),
-            session_config=VideoSessionConfig(
-                session_type=data.get("session_type"),
-                max_participants=data.get("max_participants", 10),
-                duration_minutes=data.get("duration_minutes", 60),
-                enable_recording=data.get("enable_recording", True),
-                enable_transcription=data.get("enable_transcription", True)
-            )
+
+        listing_id = data.get("listing_id")
+        host_id = data.get("host_id")
+        if not listing_id or not host_id:
+            raise HTTPException(status_code=400, detail="listing_id and host_id are required")
+
+        room = await video_service.create_room(
+            listing_id=listing_id,
+            buyer_id=data.get("buyer_id") or "pending-buyer",
+            seller_id=host_id,
         )
-        
-        return result
-        
+
+        return {
+            "success": True,
+            "session_id": room.id,
+            "room_id": room.id,
+            "listing_id": room.listing_id,
+            "buyer_id": room.buyer_id,
+            "seller_id": room.seller_id,
+            "status": room.status.value,
+            "session_type": data.get("session_type", "negotiation"),
+            "max_participants": data.get("max_participants", 10),
+            "duration_minutes": data.get("duration_minutes", 60),
+            "enable_recording": data.get("enable_recording", True),
+            "enable_transcription": data.get("enable_transcription", True),
+            "created_at": room.created_at.isoformat(),
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error scheduling video session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/video/join/{session_id}")
 async def join_video_session(session_id: str, request: Request):
-    """Join video session"""
+    """Join video session (activates the negotiation room)."""
     try:
-        data = await request.json()
+        try:
+            data = await request.json()
+        except Exception:
+            data = {}
         video_service = request.app.state.video_service
-        
-        result = await video_service.join_video_session(
-            session_id=session_id,
-            participant_id=data.get("participant_id"),
-            participant_type=data.get("participant_type", "participant")
-        )
-        
-        return result
-        
+
+        user_id = data.get("participant_id") or data.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=400, detail="participant_id is required")
+
+        try:
+            result = await video_service.join_room(room_id=session_id, user_id=user_id)
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+
+        return {
+            "success": True,
+            "session_id": session_id,
+            "participant_id": user_id,
+            "participant_type": data.get("participant_type", "participant"),
+            **result,
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error joining video session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/video/message")
 async def send_video_message(request: Request):
-    """Send message to video session"""
+    """Send message to video session (in-memory relay for the active room)."""
     try:
         data = await request.json()
         video_service = request.app.state.video_service
-        
-        result = await video_service.send_message_to_session(
-            session_id=data.get("session_id"),
-            sender_id=data.get("sender_id"),
-            message=data.get("message"),
-            message_type=data.get("message_type", "text"),
-            metadata=data.get("metadata")
-        )
-        
-        return result
-        
+
+        session_id = data.get("session_id")
+        sender_id = data.get("sender_id")
+        message = data.get("message")
+        if not session_id or not sender_id or not message:
+            raise HTTPException(status_code=400, detail="session_id, sender_id and message are required")
+
+        if session_id not in video_service.rooms:
+            raise HTTPException(status_code=404, detail=f"Room {session_id} not found")
+
+        store = getattr(request.app.state, "video_messages", None)
+        if store is None:
+            store = {}
+            request.app.state.video_messages = store
+
+        entry = {
+            "session_id": session_id,
+            "sender_id": sender_id,
+            "message": message,
+            "message_type": data.get("message_type", "text"),
+            "metadata": data.get("metadata"),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        store.setdefault(session_id, []).append(entry)
+
+        return {"success": True, **entry}
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error sending video message: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1146,27 +1244,6 @@ async def anti_smuggling_check(request: Request):
     except Exception as e:
         logger.error(f"Error in anti-smuggling check: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
-# Production Health Endpoints
-@app.get("/api/health")
-async def health_check(request: Request, detailed: bool = False):
-    """Production health check endpoint"""
-    return await health_check_api(detailed=detailed)
-
-@app.get("/api/health/summary")
-async def health_summary(request: Request):
-    """Lightweight health summary for monitoring"""
-    return await health_summary_api()
-
-@app.get("/api/health/ready")
-async def readiness_check(request: Request):
-    """Readiness check for Kubernetes/container orchestration"""
-    return await readiness_check_api()
-
-@app.get("/api/health/live")
-async def liveness_check(request: Request):
-    """Liveness check for Kubernetes/container orchestration"""
-    return await liveness_check_api()
 
 # Error handlers
 @app.exception_handler(404)

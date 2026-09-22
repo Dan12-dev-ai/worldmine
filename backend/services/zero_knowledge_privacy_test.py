@@ -14,6 +14,7 @@ from unittest.mock import Mock, AsyncMock
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from services.zero_knowledge_privacy import (
+import uuid
     ZeroKnowledgePrivacy, 
     PrivacyLevel,
     zero_knowledge_privacy

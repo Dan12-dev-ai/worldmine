@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from ..agent_framework import BaseAIAgent, AgentRole, MessageType, Priority, AgentCapability
 from ..agent_framework import AgentMetrics, communication_bus
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -16,6 +16,7 @@ import numpy as np
 from pathlib import Path
 import aiohttp
 import asyncpg
+import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

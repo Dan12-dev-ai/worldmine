@@ -33,6 +33,7 @@ except ImportError:
     SIG_DILITHIUM_5 = None
 
 from . import unified_state_manager, FeaturePriority, FeatureStatus
+import os
 
 class AuthLayer(Enum):
     """Authentication layer types"""
