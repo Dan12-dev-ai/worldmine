@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
   preview: {
     port: 4173,
     strictPort: true,
-    allowedHosts: ['.pinggy.net', '.run.pinggy-free.link', '.trycloudflare.com', '.loca.lt'],
+    allowedHosts: true,
     // The review build is served on the same origin as the API it calls: the
     // preview server proxies /api (and the websocket gateway) to the FastAPI app
     // so a tunnelled link exercises real endpoints instead of showing transport
