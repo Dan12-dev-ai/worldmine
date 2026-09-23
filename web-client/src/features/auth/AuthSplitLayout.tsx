@@ -14,7 +14,7 @@ export function AuthSplitLayout({
       <aside className="wm-auth__brand" aria-hidden="true">
         <div>
           <Link to="/" className="wm-logo">
-            <span className="wm-logo__mark">W</span>
+            <img src="/world-mine-logo.png" alt="" className="wm-logo__img" width={44} height={44} />
             <span className="wm-logo__name">WORLD <span>MINE</span></span>
           </Link>
         </div>

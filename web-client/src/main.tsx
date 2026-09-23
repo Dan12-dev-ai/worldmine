@@ -7,6 +7,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import './design-system/tokens.css';
+import './design-system/components.css';
 import './design-system/shell.css';
 import App from './app/App';
 import reportWebVitals from './reportWebVitals';

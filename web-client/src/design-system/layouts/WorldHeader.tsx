@@ -20,7 +20,13 @@ export function WorldHeader() {
     <header className="wm-header">
       <div className="wm-header__inner">
         <Link to="/" className="wm-logo" aria-label="World Mine — home">
-          <span className="wm-logo__mark" aria-hidden="true">W</span>
+          <img
+            src="/world-mine-logo.png"
+            alt=""
+            className="wm-logo__img"
+            width={48}
+            height={48}
+          />
           <span className="wm-logo__name">WORLD <span>MINE</span></span>
         </Link>
 

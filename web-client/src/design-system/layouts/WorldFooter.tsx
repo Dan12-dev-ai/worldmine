@@ -10,7 +10,7 @@ export function WorldFooter() {
       <div className="wm-footer__grid">
         <div>
           <div className="wm-logo" style={{ marginBottom: 12 }}>
-            <span className="wm-logo__mark" aria-hidden="true">W</span>
+            <img src="/world-mine-logo.png" alt="" className="wm-logo__img" width={44} height={44} />
             <span className="wm-logo__name">WORLD <span>MINE</span></span>
           </div>
           <p style={{ fontSize: 'var(--text-small)', maxWidth: '34ch' }}>

@@ -216,16 +216,20 @@ a { color: inherit; }
 }
 .wm-header__inner {
   max-width: var(--container); margin-inline: auto; padding: 0 var(--gutter);
-  height: 64px; display: flex; align-items: center; gap: var(--space-5);
+  height: 76px; display: flex; align-items: center; gap: var(--space-5);
 }
-.wm-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+.wm-logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.wm-logo__img {
+  width: 44px; height: 44px; object-fit: contain; border-radius: 9px;
+  box-shadow: 0 0 0 1px rgba(201, 162, 39, 0.28), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
 .wm-logo__mark {
   width: 30px; height: 30px; display: grid; place-items: center;
   background: linear-gradient(140deg, var(--wm-gold), #8A6E1B); color: #14110A;
   font-family: var(--font-display); font-weight: 700; font-size: 15px;
   border-radius: var(--radius-sm); box-shadow: var(--shadow-gold);
 }
-.wm-logo__name { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.06em; color: var(--wm-porcelain); }
+.wm-logo__name { font-family: var(--font-display); font-weight: 600; font-size: 1.0625rem; letter-spacing: 0.08em; color: var(--wm-porcelain); }
 .wm-logo__name span { color: var(--wm-gold-soft); }
 .wm-header__nav { display: flex; align-items: center; gap: 2px; margin-left: var(--space-4); flex: 1; }
 .wm-navlink {
@@ -240,7 +244,7 @@ a { color: inherit; }
 @media (max-width: 1024px) {
   .wm-burger { display: grid; place-items: center; }
   .wm-header__nav {
-    display: none; position: absolute; top: 64px; left: 0; right: 0;
+    display: none; position: absolute; top: 76px; left: 0; right: 0;
     flex-direction: column; align-items: stretch; padding: var(--space-3) var(--gutter) var(--space-4);
     background: var(--wm-obsidian); border-bottom: var(--border-hairline); gap: 4px;
   }

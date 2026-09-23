@@ -13,14 +13,19 @@
 }
 .wm-header__inner {
   display: flex; align-items: center; gap: var(--space-5);
-  height: 64px; max-width: var(--container-max); margin-inline: auto;
+  height: 76px; max-width: var(--container-max); margin-inline: auto;
   padding-inline: var(--gutter);
 }
 
 .wm-logo {
-  display: flex; align-items: center; gap: 10px; text-decoration: none;
+  display: flex; align-items: center; gap: 12px; text-decoration: none;
   color: var(--wm-porcelain); flex-shrink: 0;
 }
+.wm-logo__img {
+  width: 44px; height: 44px; border-radius: 9px; object-fit: contain;
+  box-shadow: 0 0 0 1px rgba(201,162,39,0.28), 0 2px 8px rgba(0,0,0,0.35);
+}
+.wm-header .wm-logo__img { width: 50px; height: 50px; }
 .wm-logo__mark {
   width: 30px; height: 30px; border-radius: 7px;
   background: linear-gradient(145deg, var(--wm-gold-deep), var(--wm-gold));
@@ -28,7 +33,7 @@
   color: #14110A; font-family: var(--font-display); font-weight: 700; font-size: 15px;
   box-shadow: 0 0 0 1px rgba(201,162,39,0.3), 0 2px 6px rgba(0,0,0,0.4);
 }
-.wm-logo__name { font-family: var(--font-display); font-weight: 600; font-size: 0.9375rem; letter-spacing: 0.02em; }
+.wm-logo__name { font-family: var(--font-display); font-weight: 600; font-size: 1.0625rem; letter-spacing: 0.08em; }
 .wm-logo__name span { color: var(--wm-gold-soft); font-weight: 500; }
 
 .wm-header__nav { display: flex; align-items: center; gap: 2px; flex: 1; }
@@ -38,7 +43,7 @@
   .wm-header__nav { display: none; }
   .wm-header__nav--open {
     display: flex; flex-direction: column; align-items: stretch;
-    position: absolute; top: 64px; left: 0; right: 0;
+    position: absolute; top: 76px; left: 0; right: 0;
     background: var(--wm-obsidian); border-bottom: var(--border-strong);
     padding: var(--space-4) var(--gutter); gap: 2px;
     z-index: var(--z-overlay);
@@ -227,7 +232,7 @@
 .wm-auth {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  min-height: calc(100vh - 64px);
+  min-height: calc(100vh - 76px);
 }
 @media (max-width: 900px) { .wm-auth { grid-template-columns: 1fr; } }
 .wm-auth__brand {
