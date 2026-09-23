@@ -224,7 +224,7 @@ class ESGAuditor:
             listing_id=listing_id,
             location_coordinates=location,
             deforestation_area=deforestation_area,
-            reforestification_area=reforestation_area,
+                        reforestation_area=reforestation_area,
             carbon_sequestered=carbon_sequestered,
             carbon_emitted=carbon_emitted,
             water_quality_index=water_quality_index,
