@@ -224,7 +224,7 @@ class ESGAuditor:
             listing_id=listing_id,
             location_coordinates=location,
             deforestation_area=deforestation_area,
-                        reforestation_area=reforestation_area,
+            reforestation_area=reforestation_area,
             carbon_sequestered=carbon_sequestered,
             carbon_emitted=carbon_emitted,
             water_quality_index=water_quality_index,
@@ -410,6 +410,16 @@ class ESGAuditor:
                 governance_score * self.esg_weights["governance"]
             )
             
+            # Snapshot the pre-update scores for the audit trail. This must be
+            # taken before the mutations below, otherwise "previous_scores"
+            # would record the new values.
+            previous_scores = {
+                "overall": current_score.overall_score,
+                "environmental": current_score.environmental_score,
+                "social": current_score.social_score,
+                "governance": current_score.governance_score
+            }
+            
             # Update ESG score
             current_score.overall_score = overall_score
             current_score.environmental_score = environmental_score
@@ -425,11 +435,12 @@ class ESGAuditor:
             current_score.audit_trail.append({
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "action": "esg_score_update",
-                "previous_scores": {
-                    "overall": current_score.overall_score,
-                    "environmental": current_score.environmental_score,
-                    "social": current_score.social_score,
-                    "governance": current_score.governance_score
+                "previous_scores": previous_scores,
+                "updated_scores": {
+                    "overall": overall_score,
+                    "environmental": environmental_score,
+                    "social": social_score,
+                    "governance": governance_score
                 },
                 "update_source": "satellite_data_refresh"
             })
