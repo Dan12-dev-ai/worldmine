@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Dan12-dev-ai/worldmine/security/advisories/new
+    about: Please report security issues privately via GitHub Security Advisories — never in a public issue.
+  - name: Documentation
+    url: https://github.com/Dan12-dev-ai/worldmine/tree/main/docs
+    about: Setup, architecture, configuration, and troubleshooting guides.
